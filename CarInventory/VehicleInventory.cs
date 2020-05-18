@@ -18,7 +18,7 @@ namespace CarInventory
         private readonly string modName = "CarInventory";
         private readonly string modVersion = "1.0";
         private readonly string modAuthor = "Stifflerstiv";
-        private readonly bool debugMode = false;
+        private readonly bool debugMode = true;
 
         private Keys openTrunkKey = Keys.E;
         private Keys putWeaponKey = Keys.I;
@@ -379,10 +379,10 @@ namespace CarInventory
 
             catch 
             { 
-                weaponName = " "; 
+                weaponName = "Empty"; 
             }
 
-            DrawHackPanelText($"Vehicle inventory: {weaponName}", 0, -0.103, 0.35, Color.White, true);
+            DrawHackPanelText($"Selected cell: {weaponName}", 0, -0.103, 0.35, Color.White, true);
 
             //headline rect
             Function.Call(Hash.DRAW_RECT, 1, 0.09, 0.18, 0.02, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
