@@ -236,7 +236,7 @@ namespace CarInventory
 
         void DebugFunc()
         {
-            UI.ShowSubtitle($"list={CustomVehiclesList.Count}, fps={(int)Game.FPS}, weap={Game.Player.Character.Weapons.Current.Hash}");
+            UI.ShowSubtitle($"key={openTrunkKey}, take={takeWeaponKey}, put={putWeaponKey}, weap={Game.Player.Character.Weapons.Current.Hash}");
         }
 
         void OnKeyDown(object sender, KeyEventArgs e)
@@ -258,7 +258,7 @@ namespace CarInventory
                 }
             }
 
-            if (e.KeyCode == Keys.I && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
+            if (e.KeyCode == putWeaponKey && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
             {
                 if (Game.Player.Character.Weapons.Current.Hash != WeaponHash.Unarmed)
                 {
@@ -278,7 +278,7 @@ namespace CarInventory
                 }
             }
 
-            if (e.KeyCode == Keys.O && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
+            if (e.KeyCode == takeWeaponKey && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
             {
                 foreach (CustomVehicle cust in CustomVehiclesList)
                 {
@@ -382,7 +382,7 @@ namespace CarInventory
                 weaponName = "Empty"; 
             }
 
-            DrawHackPanelText($"Selected cell: {weaponName}", 0, -0.103, 0.35, Color.White, true);
+            DrawHackPanelText($"Selected: {weaponName}", 0, -0.103, 0.35, Color.White, true);
 
             //headline rect
             Function.Call(Hash.DRAW_RECT, 1, 0.09, 0.18, 0.02, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
@@ -437,9 +437,12 @@ namespace CarInventory
                                     x = -0.065 + bias * Math.Abs(4 - i);
                                     y = 0.03;
                                 }
-
+                                //draw weapon icon
                                 Function.Call(Hash.DRAW_SPRITE, "mpkillquota", ReturnWeaponIconTextureName(cust.VehicleInventory.ElementAt(i).Key.Hash), x, y, 0.035, 0.03, 0.0, Color.White.R, Color.White.G, Color.White.B, 255);
-                                DrawHackPanelText($"{cust.VehicleInventory.ElementAt(i).Value}", x + 0.01, y + 0.005, 0.25, Color.White, true);
+                                
+                                // draw weapon's ammo
+                                if (cust.VehicleInventory.ElementAt(i).Key.Group != WeaponGroup.Melee)
+                                    DrawHackPanelText($"{cust.VehicleInventory.ElementAt(i).Value}", x + 0.01, y + 0.005, 0.25, Color.White, true);
                             }
                         }
 
@@ -463,10 +466,10 @@ namespace CarInventory
         }
         private CustomVehicle ContainsAVehicleCurrentCustomVehiclesList(Vehicle car) 
         {
-            foreach(CustomVehicle cus in CustomVehiclesList) 
+            foreach(CustomVehicle custom_car in CustomVehiclesList)
             {
-                if (cus.CustomModel == car)
-                    return cus;
+                if (custom_car.CustomModel == car)
+                    return custom_car;
             }
 
             return null;
@@ -535,12 +538,12 @@ namespace CarInventory
                     myINI.Write("SETTINGS", "OpenTrunkKey", "E");
                 }
 
-                if (!myINI.KeyExists("PutWeaponKey", "SETTINGS"))
+                if (!myINI.KeyExists("PutWeaponKey", "SETTINGS") || (putWeaponKey == Keys.None))
                 {
                     myINI.Write("SETTINGS", "PutWeaponKey", "I");
                 }
 
-                if (!myINI.KeyExists("TakeWeaponKey", "SETTINGS"))
+                if (!myINI.KeyExists("TakeWeaponKey", "SETTINGS") || (takeWeaponKey == Keys.None))
                 {
                     myINI.Write("SETTINGS", "TakeWeaponKey", "O");
                 }
@@ -557,10 +560,28 @@ namespace CarInventory
         //read parameters from ini file
         private void ReadFromIniConfig()
         {
-            var MyIni = new IniFile(CurrentFileDirectory);
-            Enum.TryParse(MyIni.Read("SETTINGS", "OpenTrunkKey"), out openTrunkKey);
-            Enum.TryParse(MyIni.Read("SETTINGS", "PutWeaponKey"), out putWeaponKey);
-            Enum.TryParse(MyIni.Read("SETTINGS", "TakeWeaponKey"), out takeWeaponKey);
+            var myINI = new IniFile(CurrentFileDirectory);
+            Enum.TryParse(myINI.Read("SETTINGS", "OpenTrunkKey"), out openTrunkKey);
+            Enum.TryParse(myINI.Read("SETTINGS", "PutWeaponKey"), out putWeaponKey);
+            Enum.TryParse(myINI.Read("SETTINGS", "TakeWeaponKey"), out takeWeaponKey);
+
+            if (openTrunkKey == Keys.None)
+            {
+                myINI.Write("SETTINGS", "OpenTrunkKey", "E");
+                openTrunkKey = Keys.E;
+            }
+
+            if (putWeaponKey == Keys.None)
+            {
+                myINI.Write("SETTINGS", "PutWeaponKey", "I");
+                putWeaponKey = Keys.I;
+            }
+
+            if (takeWeaponKey == Keys.None)
+            {
+                myINI.Write("SETTINGS", "TakeWeaponKey", "O");
+                takeWeaponKey = Keys.O;
+            }
         }
         //write to ini file
         private void WriteToIniCongif()
