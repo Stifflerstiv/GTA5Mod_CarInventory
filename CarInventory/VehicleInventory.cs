@@ -18,7 +18,7 @@ namespace CarInventory
         private readonly string modName = "CarInventory";
         private readonly string modVersion = "1.0";
         private readonly string modAuthor = "Stifflerstiv";
-        private readonly bool debugMode = true;
+        private readonly bool debugMode = false;
 
         private Keys openTrunkKey = Keys.E;
         private Keys putWeaponKey = Keys.I;
