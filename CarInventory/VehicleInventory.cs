@@ -18,7 +18,7 @@ namespace CarInventory
         private readonly string modName = "CarInventory";
         private readonly string modVersion = "1.0";
         private readonly string modAuthor = "Stifflerstiv";
-        private readonly bool debugMode = false;
+        private readonly bool debugMode = true;
 
         private Keys openTrunkKey = Keys.E;
         private Keys putWeaponKey = Keys.I;
@@ -30,92 +30,9 @@ namespace CarInventory
         private Vector3 TrunkCoord;
         private Vehicle currentVehicle = null;
 
-        private int cursorPos = 0;
+        private int cursorPos = 0;        
 
-        private List<string> WeaponsIconsList = new List<string>() 
-        {
-            "vehicle_weapon_player_buzzard",
-            "weapon_assault_mg",
-            "weapon_automatic_shotgun",
-            "weapon_ball",
-            "weapon_bat",
-            "weapon_battle_axe",
-            "weapon_bottle",
-            "weapon_bullpuprifle",
-            "weapon_buzzard_rocket",
-            "weapon_combatpdw",
-            "weapon_compact_grenade_launcher",
-            "weapon_compactrifle",
-            "weapon_crowbar",
-            "weapon_dagger",
-            "weapon_dbshotgun",
-            "weapon_firework",
-            "weapon_flare",
-            "weapon_flare_gun",
-            "weapon_flashlight",
-            "weapon_golfclub",
-            "weapon_gusenberg",
-            "weapon_hammer",
-            "weapon_hatchet",
-            "weapon_heavy_grenade_launcher",
-            "weapon_heavy_minigun",
-            "weapon_heavy_rifle",
-            "weapon_heavy_rpg",
-            "weapon_heavypistol",
-            "weapon_heavyshotgun",
-            "weapon_hominglauncher",
-            "weapon_jerry_can",
-            "weapon_knife",
-            "weapon_knuckle",
-            "weapon_lmg",
-            "weapon_lmg_combat",
-            "weapon_machete",
-            "weapon_machinepistol",
-            "weapon_marksmanpistol",
-            "weapon_marksmanrifle",
-            "weapon_mini_smg",
-            "weapon_molotov",
-            "weapon_musket",
-            "weapon_nightstick",
-            "weapon_pipebomb",
-            "weapon_pistol",
-            "weapon_pistol_50",
-            "weapon_pistol_ap",
-            "weapon_pistol_combat",
-            "weapon_pool_cue",
-            "weapon_programmable_ar",
-            "weapon_proximine",
-            "weapon_railgun",
-            "weapon_revolver",
-            "weapon_rifle_advanced",
-            "weapon_rifle_assault",
-            "weapon_rifle_carbine",
-            "weapon_shotgun_assault",
-            "weapon_shotgun_bullpup",
-            "weapon_shotgun_pump",
-            "weapon_shotgun_sawnoff",
-            "weapon_smg",
-            "weapon_smg_assault",
-            "weapon_smg_micro",
-            "weapon_sniper",
-            "weapon_sniper_assault",
-            "weapon_sniper_heavy",
-            "weapon_snowball",
-            "weapon_snspistol",
-            "weapon_specialcarbine",
-            "weapon_stungun",
-            "weapon_switchblade",
-            "weapon_thermalcharge",
-            "weapon_thrown_bz_gas",
-            "weapon_thrown_grenade",
-            "weapon_thrown_sticky",
-            "weapon_unarmed",
-            "weapon_vintagepistol",
-            "weapon_wrench",
-
-        };
-
-        private Dictionary<WeaponHash, string> WeaponsIconsDict = new Dictionary<WeaponHash, string>() 
+        private readonly Dictionary<WeaponHash, string> WeaponsIconsDict = new Dictionary<WeaponHash, string>() 
         {
             [WeaponHash.SniperRifle] = "weapon_sniper",
             [WeaponHash.FireExtinguisher] = "weapon_thrown_bz_gas",
@@ -209,7 +126,6 @@ namespace CarInventory
             [WeaponHash.CarbineRifleMk2] = "weapon_rifle_carbine",
             [WeaponHash.Parachute] = "vehicle_weapon_player_buzzard",
             [WeaponHash.SmokeGrenade] = "weapon_thrown_bz_gas",
-
         };
         public VehicleInventory()
         {
@@ -217,9 +133,9 @@ namespace CarInventory
 
             KeyDown += OnKeyDown;
             Tick += OnTick;
-            Function.Call(Hash.REQUEST_STREAMED_TEXTURE_DICT, "mpkillquota", false);
 
-            foreach (String texture in WeaponsIconsList)
+            Function.Call(Hash.REQUEST_STREAMED_TEXTURE_DICT, "mpkillquota", false);
+            foreach (String texture in WeaponsIconsDict.Values)
             {
                 Function.Call(Hash.HAS_STREAMED_TEXTURE_DICT_LOADED, texture);
             }
@@ -228,7 +144,7 @@ namespace CarInventory
         void OnTick(object sender, EventArgs e)
         {
             MainInventory();
-            CheckExistCustomVehicles();
+            RemoveDontExistCustomVehicles();
 
             if (debugMode)
                 DebugFunc();
@@ -236,7 +152,7 @@ namespace CarInventory
 
         void DebugFunc()
         {
-            UI.ShowSubtitle($"key={openTrunkKey}, take={takeWeaponKey}, put={putWeaponKey}, weap={Game.Player.Character.Weapons.Current.Hash}");
+            UI.ShowSubtitle($"key={openTrunkKey}, take={takeWeaponKey}, put={putWeaponKey}, count={CustomVehiclesList.Count}");
         }
 
         void OnKeyDown(object sender, KeyEventArgs e)
@@ -267,31 +183,18 @@ namespace CarInventory
                         CustomVehiclesList.Add(new CustomVehicle(currentVehicle));
                     }
 
-                    foreach(CustomVehicle cust in CustomVehiclesList) 
-                    {
-                        if (cust.CustomModel == currentVehicle) 
-                        {
-                            cust.AddToVehicleInventory(Game.Player.Character.Weapons.Current, Game.Player.Character.Weapons.Current.Ammo);
-                            break;
-                        }
-                    }
+                    CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).AddToVehicleInventory(Game.Player.Character.Weapons.Current, Game.Player.Character.Weapons.Current.Ammo);
                 }
             }
 
             if (e.KeyCode == takeWeaponKey && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
             {
-                foreach (CustomVehicle cust in CustomVehiclesList)
+                try
                 {
-                    if (cust.CustomModel == currentVehicle)
-                    {
-                        cust.RemoveFromVehicleInventory(cursorPos);
-
-                        if (cust.VehicleInventory.Count == 0)
-                            CustomVehiclesList.Remove(cust);
-
-                        break;
-                    }
+                    CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).RemoveFromVehicleInventory(cursorPos);
                 }
+
+                catch (Exception ext) { }
             }
 
             if (e.KeyCode == Keys.Left && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
@@ -335,7 +238,7 @@ namespace CarInventory
                 {
                     Vector2 vec = World3DToScreen2d(car.Position);
 
-                    if (vec.X > 0.4f && vec.X < 0.6f && vec.Y > 0.1f && vec.Y < 0.9f && RequieredVehicleClass(car) && !car.IsDead)
+                    if (vec.X > 0.4f && vec.X < 0.6f && vec.Y > 0.1f && vec.Y < 0.9f && HasCarRequieredVehicleClass(car) && !car.IsDead)
                     {
                         currentVehicle = car;
                         break;
@@ -466,40 +369,33 @@ namespace CarInventory
         }
         private CustomVehicle ContainsAVehicleCurrentCustomVehiclesList(Vehicle car) 
         {
-            foreach(CustomVehicle custom_car in CustomVehiclesList)
+            try
             {
-                if (custom_car.CustomModel == car)
-                    return custom_car;
+                return CustomVehiclesList.First(veh => veh.CustomModel == car);
             }
 
-            return null;
-        }
-        private void CheckExistCustomVehicles()
-        {
-            if (CustomVehiclesList.Count > 0)
-            {
-                for (int i = 0; i < CustomVehiclesList.Count; i++)
-                {
-                    try
-                    {
-                        if (!CustomVehiclesList[i].CustomModel.Exists())
-                            CustomVehiclesList.Remove(CustomVehiclesList[i]);
-                    }
-
-                    catch { CustomVehiclesList[i] = null; }
-                }
+            catch 
+            { 
+                return null; 
             }
         }
-        private bool RequieredVehicleClass(Vehicle car)
+        private void RemoveDontExistCustomVehicles()
         {
-            if (car.ClassType == VehicleClass.Sports || car.ClassType == VehicleClass.SportsClassics
-                || car.ClassType == VehicleClass.Sedans || car.ClassType == VehicleClass.Super
-                || car.ClassType == VehicleClass.Coupes || car.ClassType == VehicleClass.Compacts 
-                || car.ClassType == VehicleClass.Muscle || car.ClassType == VehicleClass.SUVs)
-                return true;
+            try
+            {
+                CustomVehiclesList.RemoveAll(cust => cust.CustomModel.Exists() == false || cust.VehicleInventory.Count == 0);
+            }
 
-            else
-                return false;
+            catch { }
+        }
+        private bool HasCarRequieredVehicleClass(Vehicle car)
+        {
+            var listOfVehicleClasses = new List<VehicleClass> 
+            { 
+                VehicleClass.Sports, VehicleClass.SportsClassics, VehicleClass.Sedans, VehicleClass.Super, VehicleClass.Coupes, VehicleClass.Compacts, VehicleClass.Muscle, VehicleClass.SUVs
+            };
+
+            return listOfVehicleClasses.Contains(car.ClassType);
         }
         // get convert 3d coord to 2d coord for screen
         Vector2 World3DToScreen2d(Vector3 pos)
@@ -586,10 +482,11 @@ namespace CarInventory
         //write to ini file
         private void WriteToIniCongif()
         {
-            var MyIni = new IniFile(CurrentFileDirectory);
-            MyIni.Write("SETTINGS", "OpenTrunkKey", "E");
-            MyIni.Write("SETTINGS", "PutWeaponKey", "I");
-            MyIni.Write("SETTINGS", "TakeWeaponKey", "O");
+            var myINI = new IniFile(CurrentFileDirectory);
+
+            myINI.Write("SETTINGS", "OpenTrunkKey", "E");
+            myINI.Write("SETTINGS", "PutWeaponKey", "I");
+            myINI.Write("SETTINGS", "TakeWeaponKey", "O");
         }
     }
 }

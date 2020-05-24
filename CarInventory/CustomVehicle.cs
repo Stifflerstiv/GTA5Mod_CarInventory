@@ -1,14 +1,5 @@
 ﻿using GTA;
-using GTA.Native;
-using GTA.Math;
-using System;
-using System.IO;
-using System.Windows.Forms;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Net;
-using System.Drawing;
 using System.Linq;
 
 namespace CarInventory
@@ -17,6 +8,7 @@ namespace CarInventory
     {
         public Vehicle CustomModel { get; set; }
         public Dictionary<Weapon, int> VehicleInventory = new Dictionary<Weapon, int>() { };
+
 
         public CustomVehicle(Vehicle vehicle) 
         {
@@ -27,23 +19,21 @@ namespace CarInventory
         {       
             if (VehicleInventory.Count < 8)
             {
+                // take item anim
+                Game.Player.Character.Task.PlayAnimation("anim@heists@narcotics@trash", "drop_front", 8f, 1500, false, -80f);
+
                 if (!VehicleInventory.ContainsKey(Game.Player.Character.Weapons.Current))
                 {
-                    // take item anim
-                    Game.Player.Character.Task.PlayAnimation("anim@narcotics@trash", "drop_front", 8f, 1500, false, -80f);
-                    VehicleInventory.Add(weap, ammo);
-                    Game.Player.Character.Weapons.Current.Ammo = 0;
-                    Game.Player.Character.Weapons.Remove(weap.Hash);                    
+                    VehicleInventory.Add(weap, ammo);                
                 }
 
                 else
-                {
-                    // take item anim
-                    Game.Player.Character.Task.PlayAnimation("anim@narcotics@trash", "drop_front", 8f, 1500, false, -80f);
-                    VehicleInventory[weap] += ammo;
-                    Game.Player.Character.Weapons.Current.Ammo = 0;
-                    Game.Player.Character.Weapons.Remove(weap.Hash);
+                {               
+                    VehicleInventory[weap] += ammo;                    
                 }
+
+                Game.Player.Character.Weapons.Current.Ammo = 0;
+                Game.Player.Character.Weapons.Remove(weap.Hash);
             }
         }
 
@@ -51,15 +41,12 @@ namespace CarInventory
         {
             try
             {
-                Game.Player.Character.Task.PlayAnimation("anim@narcotics@trash", "drop_front", 8f, 1500, false, -80f);
-                Game.Player.Character.Weapons.Give(VehicleInventory.ElementAt(pos).Key.Hash, VehicleInventory.ElementAt(pos).Value, false, true);
+                Game.Player.Character.Task.PlayAnimation("anim@heists@narcotics@trash", "drop_front", 8f, 1500, false, -80f);
+                Game.Player.Character.Weapons.Give(VehicleInventory.ElementAt(pos).Key.Hash, VehicleInventory.ElementAt(pos).Value, true, true);
                 VehicleInventory.Remove(VehicleInventory.ElementAt(pos).Key);
             }
 
-            catch  
-            { 
-
-            }
+            catch { }
         }
     }
 }
