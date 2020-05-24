@@ -2,21 +2,18 @@
 using GTA.Native;
 using GTA.Math;
 using System;
-using System.IO;
 using System.Windows.Forms;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Net;
 using System.Drawing;
 using System.Linq;
+using System.IO;
 
 namespace CarInventory
 {
     public class VehicleInventory : Script
     {
         private readonly string modName = "CarInventory";
-        private readonly string modVersion = "1.0";
+        private readonly string modVersion = "1.02";
         private readonly string modAuthor = "Stifflerstiv";
         private readonly bool debugMode = true;
 
@@ -135,12 +132,11 @@ namespace CarInventory
             Tick += OnTick;
 
             Function.Call(Hash.REQUEST_STREAMED_TEXTURE_DICT, "mpkillquota", false);
-            foreach (String texture in WeaponsIconsDict.Values)
+            foreach (string texture in WeaponsIconsDict.Values)
             {
                 Function.Call(Hash.HAS_STREAMED_TEXTURE_DICT_LOADED, texture);
             }
         }
-
         void OnTick(object sender, EventArgs e)
         {
             MainInventory();
@@ -194,7 +190,7 @@ namespace CarInventory
                     CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).RemoveFromVehicleInventory(cursorPos);
                 }
 
-                catch (Exception ext) { }
+                catch (Exception ext) { WriteToLogFile(ext.Message); }
             }
 
             if (e.KeyCode == Keys.Left && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
@@ -386,7 +382,7 @@ namespace CarInventory
                 CustomVehiclesList.RemoveAll(cust => cust.CustomModel.Exists() == false || cust.VehicleInventory.Count == 0);
             }
 
-            catch { }
+            catch (Exception ext) { WriteToLogFile(ext.Message); }
         }
         private bool HasCarRequieredVehicleClass(Vehicle car)
         {
@@ -420,6 +416,21 @@ namespace CarInventory
             Function.Call(Hash._DRAW_TEXT, x, y);
         }
 
+        // --------------------------------------- LOG Section --------------------------------------------------
+        void WriteToLogFile(string text)
+        {
+            string path = @"Scripts\";
+            string filename = $"{path}{modName}_Log.txt";
+
+            try
+            {
+                if (!File.Exists(filename))
+                    File.WriteAllText(filename, $"///// {modName} v{modVersion} Log, author {modAuthor}. This file contains main informations about mod errors!");
+
+                File.AppendAllText(filename, $"\n{DateTime.Now}           {text}");
+            }
+            catch { }
+        }
 
         //------------------------------ INI Section ----------------------
         void IniInitialization()
@@ -483,7 +494,6 @@ namespace CarInventory
         private void WriteToIniCongif()
         {
             var myINI = new IniFile(CurrentFileDirectory);
-
             myINI.Write("SETTINGS", "OpenTrunkKey", "E");
             myINI.Write("SETTINGS", "PutWeaponKey", "I");
             myINI.Write("SETTINGS", "TakeWeaponKey", "O");
