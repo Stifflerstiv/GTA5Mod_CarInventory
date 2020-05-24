@@ -15,7 +15,7 @@ namespace CarInventory
         private readonly string modName = "CarInventory";
         private readonly string modVersion = "1.02";
         private readonly string modAuthor = "Stifflerstiv";
-        private readonly bool debugMode = true;
+        private readonly bool debugMode = false;
 
         private Keys openTrunkKey = Keys.E;
         private Keys putWeaponKey = Keys.I;
@@ -178,7 +178,7 @@ namespace CarInventory
                     {
                         CustomVehiclesList.Add(new CustomVehicle(currentVehicle));
                     }
-
+                    
                     CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).AddToVehicleInventory(Game.Player.Character.Weapons.Current, Game.Player.Character.Weapons.Current.Ammo);
                 }
             }
