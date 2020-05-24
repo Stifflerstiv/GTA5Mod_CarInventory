@@ -20,7 +20,7 @@ namespace CarInventory
         private Keys openTrunkKey = Keys.E;
         private Keys putWeaponKey = Keys.I;
         private Keys takeWeaponKey = Keys.O;
-        readonly string CurrentFileDirectory = Environment.CurrentDirectory.ToString() + @"\Scripts\";
+        private readonly string CurrentFileDirectory = Environment.CurrentDirectory.ToString() + @"\Scripts\";
 
         private List<CustomVehicle> CustomVehiclesList = new List<CustomVehicle>() { };
 
@@ -146,7 +146,7 @@ namespace CarInventory
                 DebugFunc();
         }
 
-        void DebugFunc()
+        private void DebugFunc()
         {
             UI.ShowSubtitle($"key={openTrunkKey}, take={takeWeaponKey}, put={putWeaponKey}, count={CustomVehiclesList.Count}");
         }
@@ -286,7 +286,7 @@ namespace CarInventory
             //headline rect
             Function.Call(Hash.DRAW_RECT, 1, 0.09, 0.18, 0.02, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
             //headline text
-            DrawHackPanelText($"{putWeaponKey} - put item, {takeWeaponKey} - take item, left/right - select", 0, 0.078, 0.35, Color.White, true);
+            DrawHackPanelText($"{putWeaponKey} - put item, {takeWeaponKey} - take item, left/right - select cell", 0, 0.078, 0.35, Color.White, true);
 
             double bias = 0.043;
             double x;
@@ -417,7 +417,7 @@ namespace CarInventory
         }
 
         // --------------------------------------- LOG Section --------------------------------------------------
-        void WriteToLogFile(string text)
+        private void WriteToLogFile(string text)
         {
             string path = @"Scripts\";
             string filename = $"{path}{modName}_Log.txt";
@@ -425,7 +425,7 @@ namespace CarInventory
             try
             {
                 if (!File.Exists(filename))
-                    File.WriteAllText(filename, $"///// {modName} v{modVersion} Log, author {modAuthor}. This file contains main informations about mod errors!");
+                    File.AppendAllText(filename, $"///// {modName} v{modVersion} Log, author {modAuthor}. This file contains main informations about mod errors!");
 
                 File.AppendAllText(filename, $"\n{DateTime.Now}           {text}");
             }
@@ -433,7 +433,7 @@ namespace CarInventory
         }
 
         //------------------------------ INI Section ----------------------
-        void IniInitialization()
+        private void IniInitialization()
         {
             if (System.IO.File.Exists(CurrentFileDirectory + "CarInventory.ini"))
             {
