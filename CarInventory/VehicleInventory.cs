@@ -15,7 +15,7 @@ namespace CarInventory
         private readonly string modName = "CarInventory";
         private readonly string modVersion = "1.02";
         private readonly string modAuthor = "Stifflerstiv";
-        private readonly bool debugMode = false;
+        private readonly bool debugMode = true;
 
         private Keys openTrunkKey = Keys.E;
         private Keys putWeaponKey = Keys.I;
@@ -148,7 +148,23 @@ namespace CarInventory
 
         private void DebugFunc()
         {
-            UI.ShowSubtitle($"key={openTrunkKey}, take={takeWeaponKey}, put={putWeaponKey}, count={CustomVehiclesList.Count}");
+            //UI.ShowSubtitle($"key={openTrunkKey}, take={takeWeaponKey}, put={putWeaponKey}, count={CustomVehiclesList.Count}");
+
+            try
+            {
+                string components = "";
+
+                List<WeaponComponent> allValues = ContainsAVehicleCurrentCustomVehiclesList(currentVehicle).VehicleInventory.ElementAt(cursorPos).Value.ElementAt(0).Value;
+
+                foreach (WeaponComponent comp in allValues)
+                {
+                    components += comp.ToString() + ", ";
+                }
+
+                UI.ShowSubtitle($"key={components}");
+            }
+
+            catch { }
         }
 
         void OnKeyDown(object sender, KeyEventArgs e)
@@ -187,10 +203,11 @@ namespace CarInventory
             {
                 try
                 {
-                    CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).RemoveFromVehicleInventory(cursorPos);
+                    if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).VehicleInventory.ContainsKey(CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).VehicleInventory.ElementAt(cursorPos).Key))
+                        CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).RemoveFromVehicleInventory(cursorPos);
                 }
 
-                catch (Exception ext) { WriteToLogFile(ext.Message); }
+                catch { }
             }
 
             if (e.KeyCode == Keys.Left && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
@@ -341,7 +358,7 @@ namespace CarInventory
                                 
                                 // draw weapon's ammo
                                 if (cust.VehicleInventory.ElementAt(i).Key.Group != WeaponGroup.Melee)
-                                    DrawHackPanelText($"{cust.VehicleInventory.ElementAt(i).Value}", x + 0.01, y + 0.005, 0.25, Color.White, true);
+                                    DrawHackPanelText($"{cust.VehicleInventory.ElementAt(i).Value.ElementAt(0).Key}", x + 0.01, y + 0.005, 0.25, Color.White, true);
                             }
                         }
 
@@ -382,7 +399,7 @@ namespace CarInventory
                 CustomVehiclesList.RemoveAll(cust => cust.CustomModel.Exists() == false || cust.VehicleInventory.Count == 0);
             }
 
-            catch (Exception ext) { WriteToLogFile(ext.Message); }
+            catch (Exception ext) { WriteToLogFile("RemoveDontExistCustomVehicles - " + ext.Message); }
         }
         private bool HasCarRequieredVehicleClass(Vehicle car)
         {
@@ -427,7 +444,7 @@ namespace CarInventory
                 if (!File.Exists(filename))
                     File.AppendAllText(filename, $"///// {modName} v{modVersion} Log, author {modAuthor}. This file contains main informations about mod errors!");
 
-                File.AppendAllText(filename, $"\n{DateTime.Now}           {text}");
+                File.AppendAllText(filename, $"\n{DateTime.Now}   {text}");
             }
             catch { }
         }
