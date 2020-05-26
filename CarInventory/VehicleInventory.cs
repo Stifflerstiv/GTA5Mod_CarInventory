@@ -150,18 +150,19 @@ namespace CarInventory
         {
             //UI.ShowSubtitle($"key={openTrunkKey}, take={takeWeaponKey}, put={putWeaponKey}, count={CustomVehiclesList.Count}");
 
+            UI.ShowSubtitle($"tint={Game.Player.Character.Weapons.Current.Tint}");
             try
             {
                 string components = "";
 
-                List<WeaponComponent> allValues = ContainsAVehicleCurrentCustomVehiclesList(currentVehicle).VehicleInventory.ElementAt(cursorPos).Value.ElementAt(0).Value;
+                List<WeaponComponent> allValues = ContainsAVehicleCurrentCustomVehiclesList(currentVehicle).VehicleInventory.ElementAt(cursorPos).Value.ElementAt(0).Value.ElementAt(0).Key;
 
                 foreach (WeaponComponent comp in allValues)
                 {
                     components += comp.ToString() + ", ";
                 }
 
-                UI.ShowSubtitle($"key={components}");
+                UI.ShowSubtitle($"comp={components}");
             }
 
             catch { }
@@ -399,7 +400,7 @@ namespace CarInventory
                 CustomVehiclesList.RemoveAll(cust => cust.CustomModel.Exists() == false || cust.VehicleInventory.Count == 0);
             }
 
-            catch (Exception ext) { WriteToLogFile("RemoveDontExistCustomVehicles - " + ext.Message); }
+            catch (Exception ext) { WriteToLogFile(ext.ToString()); }
         }
         private bool HasCarRequieredVehicleClass(Vehicle car)
         {

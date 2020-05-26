@@ -12,7 +12,9 @@ namespace CarInventory
         //public Dictionary<Weapon, int> VehicleInventory = new Dictionary<Weapon, int>() { };
 
         // key = Weapon, value = key=ammo, value=[components]
-        public Dictionary<Weapon, Dictionary<int, List<WeaponComponent>>> VehicleInventory = new Dictionary<Weapon, Dictionary<int, List<WeaponComponent>>>() { };
+        //public Dictionary<Weapon, Dictionary<int, List<WeaponComponent>>> VehicleInventory = new Dictionary<Weapon, Dictionary<int, List<WeaponComponent>>>() { };
+
+        public Dictionary<Weapon, Dictionary<int, Dictionary<List<WeaponComponent>, WeaponTint>>> VehicleInventory = new Dictionary<Weapon, Dictionary<int, Dictionary<List<WeaponComponent>, WeaponTint>>>() { };
 
         public CustomVehicle(Vehicle vehicle) 
         {
@@ -28,13 +30,26 @@ namespace CarInventory
 
                 if (!VehicleInventory.ContainsKey(Game.Player.Character.Weapons.Current))
                 {
-                    VehicleInventory.Add(weap, new Dictionary<int, List<WeaponComponent>>() { [ammo] = GetAllWeaponComponentsList(Game.Player.Character.Weapons.Current) });
+                    //VehicleInventory.Add(weap, new Dictionary<int, List<WeaponComponent>>() { [ammo] = GetAllWeaponComponentsList(Game.Player.Character.Weapons.Current) });
+                    VehicleInventory.Add(weap, new Dictionary<int, Dictionary<List<WeaponComponent>, WeaponTint>>() 
+                                                { 
+                                                    [ammo] = new Dictionary<List<WeaponComponent>, WeaponTint>() 
+                                                            { 
+                                                                [GetAllWeaponComponentsList(Game.Player.Character.Weapons.Current)] = Game.Player.Character.Weapons.Current.Tint                    
+                                                            } 
+                                                });
                 }
 
                 else
                 {
                     int ammos = VehicleInventory[weap].ElementAt(0).Key + ammo;
-                    VehicleInventory[weap] = new Dictionary<int, List<WeaponComponent>>() { [ammos] = GetAllWeaponComponentsList(Game.Player.Character.Weapons.Current) };
+                    VehicleInventory[weap] = new Dictionary<int, Dictionary<List<WeaponComponent>, WeaponTint>>()
+                    {
+                        [ammos] = new Dictionary<List<WeaponComponent>, WeaponTint>()
+                        {
+                            [GetAllWeaponComponentsList(Game.Player.Character.Weapons.Current)] = Game.Player.Character.Weapons.Current.Tint
+                        }
+                    };
                 }
 
                 Game.Player.Character.Weapons.Current.Ammo = 0;
@@ -47,16 +62,19 @@ namespace CarInventory
             try
             {
                 Game.Player.Character.Task.PlayAnimation("anim@heists@narcotics@trash", "drop_front", 8f, 1500, false, -80f);
-                Game.Player.Character.Weapons.Give(VehicleInventory.ElementAt(pos).Key.Hash, VehicleInventory.ElementAt(pos).Value.ElementAt(0).Key, true, true);                
+                Game.Player.Character.Weapons.Give(VehicleInventory.ElementAt(pos).Key.Hash, VehicleInventory.ElementAt(pos).Value.ElementAt(0).Key, true, true);
 
-                List<WeaponComponent> GetWeaponComponentsList = VehicleInventory.ElementAt(pos).Value.ElementAt(0).Value;
-                UI.Notify(GetWeaponComponentsList.Count.ToString());
+                // get all weapon components
+                List<WeaponComponent> GetWeaponComponentsList = VehicleInventory.ElementAt(pos).Value.ElementAt(0).Value.ElementAt(0).Key;
 
                 foreach (WeaponComponent wea_comp in GetWeaponComponentsList)
                 {
                     Game.Player.Character.Weapons.Current.SetComponent(wea_comp, true);
-                }                              
-                               
+                }
+
+                //set weapo tint
+                Game.Player.Character.Weapons.Current.Tint = VehicleInventory.ElementAt(pos).Value.ElementAt(0).Value.ElementAt(0).Value;
+
                 VehicleInventory.Remove(VehicleInventory.ElementAt(pos).Key);
             }
 
@@ -74,6 +92,16 @@ namespace CarInventory
                 if (weap.IsComponentActive(comp))
                     weapon_components.Add(comp);
             }
+
+            /*
+            var allTintValues = (WeaponTint[])Enum.GetValues(typeof(WeaponTint));
+
+            foreach (WeaponTint tint in allTintValues)
+            {
+                if (weap.IsComponentActive(tint))
+                    weapon_components.Add(tint);
+            }
+            */
 
             return weapon_components;
         }
