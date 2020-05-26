@@ -155,7 +155,7 @@ namespace CarInventory
             {
                 string components = "";
 
-                List<WeaponComponent> allValues = ContainsAVehicleCurrentCustomVehiclesList(currentVehicle).VehicleInventory.ElementAt(cursorPos).Value.ElementAt(0).Value.ElementAt(0).Key;
+                List<WeaponComponent> allValues = ContainsAVehicleCurrentCustomVehiclesList(currentVehicle).VehicleInventory.ElementAt(cursorPos).CustomWeaponComponentList;
 
                 foreach (WeaponComponent comp in allValues)
                 {
@@ -204,7 +204,7 @@ namespace CarInventory
             {
                 try
                 {
-                    if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).VehicleInventory.ContainsKey(CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).VehicleInventory.ElementAt(cursorPos).Key))
+                    if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).VehicleInventory.Contains(CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).VehicleInventory.ElementAt(cursorPos)))
                         CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).RemoveFromVehicleInventory(cursorPos);
                 }
 
@@ -291,7 +291,7 @@ namespace CarInventory
 
             try
             {
-                weaponName = ContainsAVehicleCurrentCustomVehiclesList(currentVehicle).VehicleInventory.ElementAt(cursorPos).Key.Name;
+                weaponName = ContainsAVehicleCurrentCustomVehiclesList(currentVehicle).VehicleInventory.ElementAt(cursorPos).CustomWeaponModel.Name;
             }
 
             catch 
@@ -341,7 +341,7 @@ namespace CarInventory
                     {
                         try
                         {
-                            if (cust.VehicleInventory.ContainsKey(cust.VehicleInventory.ElementAt(i).Key))
+                            if (cust.VehicleInventory.Contains(cust.VehicleInventory.ElementAt(i)))
                             {
                                 if (i < 4)
                                 {
@@ -355,11 +355,11 @@ namespace CarInventory
                                     y = 0.03;
                                 }
                                 //draw weapon icon
-                                Function.Call(Hash.DRAW_SPRITE, "mpkillquota", ReturnWeaponIconTextureName(cust.VehicleInventory.ElementAt(i).Key.Hash), x, y, 0.035, 0.03, 0.0, Color.White.R, Color.White.G, Color.White.B, 255);
+                                Function.Call(Hash.DRAW_SPRITE, "mpkillquota", ReturnWeaponIconTextureName(cust.VehicleInventory.ElementAt(i).CustomWeaponModel.Hash), x, y, 0.035, 0.03, 0.0, Color.White.R, Color.White.G, Color.White.B, 255);
                                 
                                 // draw weapon's ammo
-                                if (cust.VehicleInventory.ElementAt(i).Key.Group != WeaponGroup.Melee)
-                                    DrawHackPanelText($"{cust.VehicleInventory.ElementAt(i).Value.ElementAt(0).Key}", x + 0.01, y + 0.005, 0.25, Color.White, true);
+                                if (cust.VehicleInventory.ElementAt(i).CustomWeaponModel.Group != WeaponGroup.Melee)
+                                    DrawHackPanelText($"{cust.VehicleInventory.ElementAt(i).CustomWeaponAmmo}", x + 0.01, y + 0.005, 0.25, Color.White, true);
                             }
                         }
 

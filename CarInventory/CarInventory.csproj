@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="CustomVehicle.cs" />
     <Compile Include="IniFile.cs" />
+    <Compile Include="CustomWeapon.cs" />
     <Compile Include="VehicleInventory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
