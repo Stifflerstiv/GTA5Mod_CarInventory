@@ -12,6 +12,7 @@ Stay near vehicle' trunk and press "E" for open (vehicle's doors must be unlocke
 
 -------------------<b>CHANGELOG</b>----------------------
 <b>Update v1.02:</b>
+- Fixed unsaving weapon components and tint bug
 - Added LOG system (all errors will be written to log file)
 - Changed "put" and "take" animations
 - Some script changes and other small changes

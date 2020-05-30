@@ -20,6 +20,7 @@ namespace CarInventory
         private Keys openTrunkKey = Keys.E;
         private Keys putWeaponKey = Keys.I;
         private Keys takeWeaponKey = Keys.O;
+
         private readonly string CurrentFileDirectory = Environment.CurrentDirectory.ToString() + @"\Scripts\";
 
         private List<CustomVehicle> CustomVehiclesList = new List<CustomVehicle>() { };
@@ -124,8 +125,23 @@ namespace CarInventory
             [WeaponHash.Parachute] = "vehicle_weapon_player_buzzard",
             [WeaponHash.SmokeGrenade] = "weapon_thrown_bz_gas",
         };
+
+        // ini file parameters
+        private IniFile myINI;
+        private readonly Dictionary<string, string> IniParameters = new Dictionary<string, string>()
+        {
+            ["OpenTrunkKey"] = "E",
+            ["PutWeaponKey"] = "I",
+            ["TakeWeaponKey"] = "O",
+        };
+        //----------------------------------------------------------------------------------------------------------------------------------------------
+
         public VehicleInventory()
         {
+            // create ini file class object
+            myINI = new IniFile(CurrentFileDirectory);
+
+            // call initialization
             IniInitialization();
 
             KeyDown += OnKeyDown;
@@ -453,42 +469,19 @@ namespace CarInventory
         //------------------------------ INI Section ----------------------
         private void IniInitialization()
         {
-            if (System.IO.File.Exists(CurrentFileDirectory + "CarInventory.ini"))
-            {
-                // ini file exist checker
-                var myINI = new IniFile(CurrentFileDirectory);
+            // checking parameters exist, create if don't exist
+            WriteToIniCongif(IniParameters);
 
-                if (!myINI.KeyExists("OpenTrunkKey", "SETTINGS") || (openTrunkKey == Keys.None))
-                {
-                    myINI.Write("SETTINGS", "OpenTrunkKey", "E");
-                }
-
-                if (!myINI.KeyExists("PutWeaponKey", "SETTINGS") || (putWeaponKey == Keys.None))
-                {
-                    myINI.Write("SETTINGS", "PutWeaponKey", "I");
-                }
-
-                if (!myINI.KeyExists("TakeWeaponKey", "SETTINGS") || (takeWeaponKey == Keys.None))
-                {
-                    myINI.Write("SETTINGS", "TakeWeaponKey", "O");
-                }
-
-                ReadFromIniConfig();
-            }
-
-            else
-            {
-                WriteToIniCongif();
-                ReadFromIniConfig();
-            }
+            // reading parameters from checked config file
+            ReadFromIniConfig(IniParameters);
         }
-        //read parameters from ini file
-        private void ReadFromIniConfig()
+
+        private void ReadFromIniConfig(Dictionary<string, string> IniParameters)
         {
-            var myINI = new IniFile(CurrentFileDirectory);
-            Enum.TryParse(myINI.Read("SETTINGS", "OpenTrunkKey"), out openTrunkKey);
-            Enum.TryParse(myINI.Read("SETTINGS", "PutWeaponKey"), out putWeaponKey);
-            Enum.TryParse(myINI.Read("SETTINGS", "TakeWeaponKey"), out takeWeaponKey);
+            // parsing control keys
+            Enum.TryParse(myINI.Read("SETTINGS", IniParameters.ElementAt(0).Key), out openTrunkKey);
+            Enum.TryParse(myINI.Read("SETTINGS", IniParameters.ElementAt(1).Key), out putWeaponKey);
+            Enum.TryParse(myINI.Read("SETTINGS", IniParameters.ElementAt(2).Key), out takeWeaponKey);
 
             if (openTrunkKey == Keys.None)
             {
@@ -508,13 +501,16 @@ namespace CarInventory
                 takeWeaponKey = Keys.O;
             }
         }
-        //write to ini file
-        private void WriteToIniCongif()
+
+        private void WriteToIniCongif(Dictionary<string, string> IniParameters)
         {
-            var myINI = new IniFile(CurrentFileDirectory);
-            myINI.Write("SETTINGS", "OpenTrunkKey", "E");
-            myINI.Write("SETTINGS", "PutWeaponKey", "I");
-            myINI.Write("SETTINGS", "TakeWeaponKey", "O");
+            foreach (var param in IniParameters)
+            {
+                if (!myINI.KeyExists(param.Key, "SETTINGS"))
+                {
+                    myINI.Write("SETTINGS", param.Key, param.Value);
+                }
+            }
         }
     }
 }
