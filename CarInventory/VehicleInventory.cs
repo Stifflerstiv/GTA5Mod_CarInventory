@@ -139,7 +139,7 @@ namespace CarInventory
         public VehicleInventory()
         {
             // create ini file class object
-            myINI = new IniFile(CurrentFileDirectory);
+            myINI = new IniFile("CarInventory");
 
             // call initialization
             IniInitialization();
@@ -171,7 +171,7 @@ namespace CarInventory
             {
                 string components = "";
 
-                List<WeaponComponent> allValues = ContainsAVehicleCurrentCustomVehiclesList(currentVehicle).VehicleInventory.ElementAt(cursorPos).CustomWeaponComponentList;
+                List<WeaponComponent> allValues = ContainsAVehicleCurrentCustomVehiclesList(currentVehicle).CustomVehicleInventory.ElementAt(cursorPos).CustomWeaponComponentList;
 
                 foreach (WeaponComponent comp in allValues)
                 {
@@ -220,7 +220,7 @@ namespace CarInventory
             {
                 try
                 {
-                    if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).VehicleInventory.Contains(CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).VehicleInventory.ElementAt(cursorPos)))
+                    if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).CustomVehicleInventory.Contains(CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).CustomVehicleInventory.ElementAt(cursorPos)))
                         CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).RemoveFromVehicleInventory(cursorPos);
                 }
 
@@ -307,7 +307,7 @@ namespace CarInventory
 
             try
             {
-                weaponName = ContainsAVehicleCurrentCustomVehiclesList(currentVehicle).VehicleInventory.ElementAt(cursorPos).CustomWeaponModel.Name;
+                weaponName = ContainsAVehicleCurrentCustomVehiclesList(currentVehicle).CustomVehicleInventory.ElementAt(cursorPos).CustomWeaponModel.Name;
             }
 
             catch 
@@ -353,11 +353,11 @@ namespace CarInventory
             {
                 if (cust.CustomModel == currentVehicle)
                 {
-                    for (int i = 0; i < cust.VehicleInventory.Count; i++)
+                    for (int i = 0; i < cust.CustomVehicleInventory.Count; i++)
                     {
                         try
                         {
-                            if (cust.VehicleInventory.Contains(cust.VehicleInventory.ElementAt(i)))
+                            if (cust.CustomVehicleInventory.Contains(cust.CustomVehicleInventory.ElementAt(i)))
                             {
                                 if (i < 4)
                                 {
@@ -371,11 +371,11 @@ namespace CarInventory
                                     y = 0.03;
                                 }
                                 //draw weapon icon
-                                Function.Call(Hash.DRAW_SPRITE, "mpkillquota", ReturnWeaponIconTextureName(cust.VehicleInventory.ElementAt(i).CustomWeaponModel.Hash), x, y, 0.035, 0.03, 0.0, Color.White.R, Color.White.G, Color.White.B, 255);
+                                Function.Call(Hash.DRAW_SPRITE, "mpkillquota", ReturnWeaponIconTextureName(cust.CustomVehicleInventory.ElementAt(i).CustomWeaponModel.Hash), x, y, 0.035, 0.03, 0.0, Color.White.R, Color.White.G, Color.White.B, 255);
                                 
                                 // draw weapon's ammo
-                                if (cust.VehicleInventory.ElementAt(i).CustomWeaponModel.Group != WeaponGroup.Melee)
-                                    DrawHackPanelText($"{cust.VehicleInventory.ElementAt(i).CustomWeaponAmmo}", x + 0.01, y + 0.005, 0.25, Color.White, true);
+                                if (cust.CustomVehicleInventory.ElementAt(i).CustomWeaponModel.Group != WeaponGroup.Melee)
+                                    DrawHackPanelText($"{cust.CustomVehicleInventory.ElementAt(i).CustomWeaponAmmo}", x + 0.01, y + 0.005, 0.25, Color.White, true);
                             }
                         }
 
@@ -413,7 +413,7 @@ namespace CarInventory
         {
             try
             {
-                CustomVehiclesList.RemoveAll(cust => cust.CustomModel.Exists() == false || cust.VehicleInventory.Count == 0);
+                CustomVehiclesList.RemoveAll(cust => cust.CustomModel.Exists() == false || cust.CustomVehicleInventory.Count == 0);
             }
 
             catch (Exception ext) { WriteToLogFile(ext.ToString()); }

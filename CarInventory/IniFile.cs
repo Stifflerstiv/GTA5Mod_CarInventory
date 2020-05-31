@@ -7,7 +7,6 @@ namespace CarInventory
     class IniFile
     {
         string Path; //полный путь до файла конфигурации.
-        string IniName = "CarInventory"; // имя файла конфигурации
 
         [DllImport("kernel32")] // Подключаем kernel32.dll и описываем его функцию WritePrivateProfilesString
         static extern long WritePrivateProfileString(string Section, string Key, string Value, string FilePath);
@@ -16,9 +15,9 @@ namespace CarInventory
         static extern int GetPrivateProfileString(string Section, string Key, string Default, StringBuilder RetVal, int Size, string FilePath);
 
         // С помощью конструктора записываем пусть до файла и его имя.
-        public IniFile(string IniPath)
+        public IniFile(string IniFileName)
         {
-            Path = Environment.CurrentDirectory.ToString() + @"\Scripts\" + $"{IniName}.ini";
+            Path = Environment.CurrentDirectory.ToString() + @"\Scripts\" + $"{IniFileName}.ini";
         }
 
         //Читаем ini-файл и возвращаем значение указного ключа из заданной секции.

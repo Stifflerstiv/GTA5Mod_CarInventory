@@ -10,6 +10,7 @@ P.S. If you have changed "CarInventory.ini" you may replays "CarInventory.dll" o
 <b>Using:</b>
 Stay near vehicle' trunk and press "E" for open (vehicle's doors must be unlocked)
 
+Vehicle class types support: Sports, SportsClassics, Sedans, Super, Coupes, Compacts, Muscle, SUVs
 -------------------<b>CHANGELOG</b>----------------------
 <b>Update v1.02:</b>
 - Fixed unsaving weapon components and tint bug
