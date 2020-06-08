@@ -12,6 +12,11 @@ Stay near vehicle' trunk and press "E" for open (vehicle's doors must be unlocke
 
 Vehicle class types support: Sports, SportsClassics, Sedans, Super, Coupes, Compacts, Muscle, SUVs
 -------------------<b>CHANGELOG</b>----------------------
+<b>Update v1.03:</b>
+- Added left/right navigate keys configuration
+- Fixed some bugs
+- Some script changes and other small changes
+
 <b>Update v1.02:</b>
 - Fixed unsaving weapon components and tint bug
 - Added LOG system (all errors will be written to log file)

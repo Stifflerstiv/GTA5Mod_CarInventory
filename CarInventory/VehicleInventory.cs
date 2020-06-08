@@ -13,15 +13,16 @@ namespace CarInventory
     public class VehicleInventory : Script
     {
         private readonly string modName = "CarInventory";
-        private readonly string modVersion = "1.02";
+        private readonly string modVersion = "1.03";
         private readonly string modAuthor = "Stifflerstiv";
-        private readonly bool debugMode = true;
+        private readonly bool debugMode = false;
 
+        // mod keys
         private Keys openTrunkKey = Keys.E;
         private Keys putWeaponKey = Keys.I;
         private Keys takeWeaponKey = Keys.O;
-
-        private readonly string CurrentFileDirectory = Environment.CurrentDirectory.ToString() + @"\Scripts\";
+        private Keys navigateLeft = Keys.Left;
+        private Keys navigateRight = Keys.Right;
 
         private List<CustomVehicle> CustomVehiclesList = new List<CustomVehicle>() { };
 
@@ -133,13 +134,15 @@ namespace CarInventory
             ["OpenTrunkKey"] = "E",
             ["PutWeaponKey"] = "I",
             ["TakeWeaponKey"] = "O",
+            ["NavigateLeft"] = "Left",
+            ["NavigateRight"] = "Right",
         };
         //----------------------------------------------------------------------------------------------------------------------------------------------
 
         public VehicleInventory()
         {
             // create ini file class object
-            myINI = new IniFile("CarInventory");
+            myINI = new IniFile(modName);
 
             // call initialization
             IniInitialization();
@@ -186,7 +189,7 @@ namespace CarInventory
 
         void OnKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == openTrunkKey && currentVehicle != null && currentVehicle.LockStatus == VehicleLockStatus.Unlocked && !currentVehicle.IsDoorBroken(VehicleDoor.Trunk))
+            if (e.KeyCode == openTrunkKey && currentVehicle != null && currentVehicle.LockStatus == VehicleLockStatus.Unlocked && !currentVehicle.IsDoorBroken(VehicleDoor.Trunk) && !Game.Player.Character.IsInVehicle() && !Game.Player.Character.IsDead)
             {
                 if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
                 {
@@ -227,7 +230,7 @@ namespace CarInventory
                 catch { }
             }
 
-            if (e.KeyCode == Keys.Left && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
+            if (e.KeyCode == navigateLeft && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
             {
                 if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
                 {
@@ -238,7 +241,7 @@ namespace CarInventory
                 }
             }
 
-            if (e.KeyCode == Keys.Right && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
+            if (e.KeyCode == navigateRight && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
             {
                 if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
                 {
@@ -254,40 +257,43 @@ namespace CarInventory
         {
             currentVehicle = null;
 
-            Vehicle[] all_near_vehicles = World.GetNearbyVehicles(Game.Player.Character.Position, 6f);
-
-            if (all_near_vehicles.Length == 0)
-                return;
-
-            //get all entities near
-            foreach (Vehicle car in all_near_vehicles)
+            if (!Game.Player.Character.IsInVehicle())
             {
-                TrunkCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "neon_b"));
+                Vehicle[] all_near_vehicles = World.GetNearbyVehicles(Game.Player.Character.Position, 6f);
 
-                if (car.IsOnScreen && World.GetDistance(Game.Player.Character.Position, TrunkCoord) < 1.5f)
+                if (all_near_vehicles.Length == 0)
+                    return;
+
+                //get all entities near
+                foreach (Vehicle car in all_near_vehicles)
                 {
-                    Vector2 vec = World3DToScreen2d(car.Position);
+                    TrunkCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "neon_b"));
 
-                    if (vec.X > 0.4f && vec.X < 0.6f && vec.Y > 0.1f && vec.Y < 0.9f && HasCarRequieredVehicleClass(car) && !car.IsDead)
+                    if (car.IsOnScreen && World.GetDistance(Game.Player.Character.Position, TrunkCoord) < 1.5f)
                     {
-                        currentVehicle = car;
-                        break;
+                        Vector2 vec = World3DToScreen2d(car.Position);
+
+                        if (vec.X > 0.4f && vec.X < 0.6f && vec.Y > 0.1f && vec.Y < 0.9f && HasCarRequieredVehicleClass(car) && !car.IsDead)
+                        {
+                            currentVehicle = car;
+                            break;
+                        }
                     }
                 }
-            }
 
-            if (currentVehicle != null)
-            {
-                if (World.GetDistance(Game.Player.Character.Position, TrunkCoord) < 2f && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
+                if (currentVehicle != null)
                 {
-                    TrunkCoord.Z += 1;
-                    Vector2 vec = World3DToScreen2d(TrunkCoord);
+                    if (World.GetDistance(Game.Player.Character.Position, TrunkCoord) < 2f && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
+                    {
+                        TrunkCoord.Z += 1;
+                        Vector2 vec = World3DToScreen2d(TrunkCoord);
 
-                    if (!currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
-                        DrawHackPanelText($"Press {openTrunkKey} to open/close the trunk", vec.X, vec.Y + 0.1, 0.36f, Color.White, true);
+                        if (!currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
+                            DrawHackPanelText($"Press {openTrunkKey} to open/close the trunk", vec.X, vec.Y + 0.1, 0.36f, Color.White, true);
 
-                    if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
-                        DrawInventoryPanel(TrunkCoord);
+                        if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
+                            DrawInventoryPanel(TrunkCoord);
+                    }
                 }
             }
         }
@@ -320,7 +326,7 @@ namespace CarInventory
             //headline rect
             Function.Call(Hash.DRAW_RECT, 1, 0.09, 0.18, 0.02, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
             //headline text
-            DrawHackPanelText($"{putWeaponKey} - put item, {takeWeaponKey} - take item, left/right - select cell", 0, 0.078, 0.35, Color.White, true);
+            DrawHackPanelText($"{putWeaponKey} - put item, {takeWeaponKey} - take item, {navigateLeft} / {navigateRight} - navigate", 0, 0.078, 0.28, Color.White, true);
 
             double bias = 0.043;
             double x;
@@ -482,6 +488,8 @@ namespace CarInventory
             Enum.TryParse(myINI.Read("SETTINGS", IniParameters.ElementAt(0).Key), out openTrunkKey);
             Enum.TryParse(myINI.Read("SETTINGS", IniParameters.ElementAt(1).Key), out putWeaponKey);
             Enum.TryParse(myINI.Read("SETTINGS", IniParameters.ElementAt(2).Key), out takeWeaponKey);
+            Enum.TryParse(myINI.Read("SETTINGS", IniParameters.ElementAt(3).Key), out navigateLeft);
+            Enum.TryParse(myINI.Read("SETTINGS", IniParameters.ElementAt(4).Key), out navigateRight);
 
             if (openTrunkKey == Keys.None)
             {
@@ -499,6 +507,18 @@ namespace CarInventory
             {
                 myINI.Write("SETTINGS", "TakeWeaponKey", "O");
                 takeWeaponKey = Keys.O;
+            }
+
+            if (navigateLeft == Keys.None)
+            {
+                myINI.Write("SETTINGS", "NavigateLeft", "Left");
+                navigateLeft = Keys.Left;
+            }
+
+            if (navigateRight == Keys.None)
+            {
+                myINI.Write("SETTINGS", "NavigateRight", "Right");
+                navigateRight = Keys.Right;
             }
         }
 
