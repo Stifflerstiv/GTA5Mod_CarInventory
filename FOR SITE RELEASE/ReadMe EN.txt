@@ -15,7 +15,7 @@ Vehicle class types support: Sports, SportsClassics, Sedans, Super, Coupes, Comp
 <b>Update v1.03:</b>
 - Added left/right navigate keys configuration
 - Fixed some bugs
-- Some script changes and other small changes
+- Some script changes
 
 <b>Update v1.02:</b>
 - Fixed unsaving weapon components and tint bug

@@ -1,4 +1,4 @@
-------------------ENG-------------------
+﻿------------------ENG-------------------
 This mod adds GUI weapon inventory for car's trunk.
 
 <b>Installation:</b>
@@ -12,6 +12,11 @@ Stay near vehicle' trunk and press "E" for open (vehicle's doors must be unlocke
 
 Vehicle class types support: Sports, SportsClassics, Sedans, Super, Coupes, Compacts, Muscle, SUVs
 -------------------<b>CHANGELOG</b>----------------------
+<b>Update v1.03:</b>
+- Added left/right navigate keys configuration
+- Fixed some bugs
+- Some script changes
+
 <b>Update v1.02:</b>
 - Fixed unsaving weapon components and tint bug
 - Added LOG system (all errors will be written to log file)
@@ -44,6 +49,11 @@ TakeWeaponKey - взять оружие из багажника
 Поддерживаемые классы автомобилей: Sports, SportsClassics, Sedans, Super, Coupes, Compacts, Muscle, SUVs
 
 -------------------<b>ИСТОРИЯ ИЗМЕНЕНИЙ</b>----------------------
+<b>Патч v1.03:</b>
+- Добавлены настройки для клавиш навигации в инвентаре
+- Исправлены некоторые баги
+- Некоторые изменения кода
+
 <b>Патч v1.02:</b>
 - Исправлен баг с несохранением компонентов оружия и покраски
 - Добавлена система логирования ошибок (их появления будут записаны в файл лога)

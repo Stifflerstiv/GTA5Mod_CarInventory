@@ -13,20 +13,22 @@ namespace CarInventory
     public class VehicleInventory : Script
     {
         private readonly string modName = "CarInventory";
-        private readonly string modVersion = "1.03";
+        private readonly string modVersion = "1.04";
         private readonly string modAuthor = "Stifflerstiv";
         private readonly bool debugMode = false;
 
-        // mod keys
-        private Keys openTrunkKey = Keys.E;
-        private Keys putWeaponKey = Keys.I;
-        private Keys takeWeaponKey = Keys.O;
-        private Keys navigateLeft = Keys.Left;
-        private Keys navigateRight = Keys.Right;
+        // ini keys
+        Keys OpenTrunkKey;
+        Keys PutWeaponKey;
+        Keys TakeWeaponKey;
+        Keys NavigateLeft;
+        Keys NavigateRight;
+
+        // ini parameters
 
         private List<CustomVehicle> CustomVehiclesList = new List<CustomVehicle>() { };
 
-        private Vector3 TrunkCoord;
+        private Vector3 TrunkNeonCoord;
         private Vehicle currentVehicle = null;
 
         private int cursorPos = 0;        
@@ -129,27 +131,42 @@ namespace CarInventory
 
         // ini file parameters
         private IniFile myINI;
-        private readonly Dictionary<string, string> IniParameters = new Dictionary<string, string>()
+        // dict of mod keys
+        private Dictionary<string, List<Keys>> IniModKeysSettings = new Dictionary<string, List<Keys>>()
         {
-            ["OpenTrunkKey"] = "E",
-            ["PutWeaponKey"] = "I",
-            ["TakeWeaponKey"] = "O",
-            ["NavigateLeft"] = "Left",
-            ["NavigateRight"] = "Right",
+            ["OpenTrunkKey"] = new List<Keys>() { Keys.E, Keys.None },
+            ["PutWeaponKey"] = new List<Keys>() { Keys.I, Keys.None },
+            ["TakeWeaponKey"] = new List<Keys>() { Keys.O, Keys.None },
+            ["NavigateLeft"] = new List<Keys>() { Keys.Left, Keys.None },
+            ["NavigateRight"] = new List<Keys>() { Keys.Right, Keys.None },
         };
+        //dict of mod settings
+        private Dictionary<string, string> IniModOtherSettings = new Dictionary<string, string>() { };
+
         //----------------------------------------------------------------------------------------------------------------------------------------------
 
         public VehicleInventory()
         {
             // create ini file class object
+
             myINI = new IniFile(modName);
 
             // call initialization
             IniInitialization();
 
+            // key variables
+            OpenTrunkKey = IniModKeysSettings.ElementAt(0).Value[1];
+            PutWeaponKey = IniModKeysSettings.ElementAt(1).Value[1];
+            TakeWeaponKey = IniModKeysSettings.ElementAt(2).Value[1];
+            NavigateLeft = IniModKeysSettings.ElementAt(3).Value[1];
+            NavigateRight = IniModKeysSettings.ElementAt(4).Value[1];
+
+
+            // end of initialization
             KeyDown += OnKeyDown;
             Tick += OnTick;
 
+            // icons streaming
             Function.Call(Hash.REQUEST_STREAMED_TEXTURE_DICT, "mpkillquota", false);
             foreach (string texture in WeaponsIconsDict.Values)
             {
@@ -189,24 +206,48 @@ namespace CarInventory
 
         void OnKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == openTrunkKey && currentVehicle != null && currentVehicle.LockStatus == VehicleLockStatus.Unlocked && !currentVehicle.IsDoorBroken(VehicleDoor.Trunk) && !Game.Player.Character.IsInVehicle() && !Game.Player.Character.IsDead)
+            if (e.KeyCode == OpenTrunkKey && currentVehicle != null && currentVehicle.LockStatus == VehicleLockStatus.Unlocked && !Game.Player.Character.IsInVehicle() && !Game.Player.Character.IsDead)
             {
-                if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
+                Vector3 EngineCoord = currentVehicle.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, currentVehicle, "engine"));
+                Vector3 HoodCoord = currentVehicle.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, currentVehicle, "bonnet"));
+                Vector3 TrunkCoord = currentVehicle.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, currentVehicle, "boot"));
+
+                if (World.GetDistance(EngineCoord, HoodCoord) < World.GetDistance(EngineCoord, TrunkCoord))
                 {
-                    // playing close trunk anitation
-                    Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "enter", 8f, 400, false, -1f);
-                    currentVehicle.CloseDoor(VehicleDoor.Trunk, false);
+                    if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
+                    {
+                        // playing close trunk anitation
+                        Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "enter", 8f, 400, false, -1f);
+                        currentVehicle.CloseDoor(VehicleDoor.Trunk, false);
+                    }
+
+                    else
+                    {
+                        // playing open trunk anitation
+                        Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "exit", 8f, 400, false, -1f);
+                        currentVehicle.OpenDoor(VehicleDoor.Trunk, false, false);
+                    }
                 }
 
-                else
+                else 
                 {
-                    // playing open trunk anitation
-                    Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "exit", 8f, 400, false, -1f);
-                    currentVehicle.OpenDoor(VehicleDoor.Trunk, false, false);
+                    if (currentVehicle.IsDoorOpen(VehicleDoor.Hood))
+                    {
+                        // playing close trunk anitation
+                        Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "enter", 8f, 400, false, -1f);
+                        currentVehicle.CloseDoor(VehicleDoor.Hood, false);
+                    }
+
+                    else
+                    {
+                        // playing open trunk anitation
+                        Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "exit", 8f, 400, false, -1f);
+                        currentVehicle.OpenDoor(VehicleDoor.Hood, false, false);
+                    }
                 }
             }
 
-            if (e.KeyCode == putWeaponKey && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
+            if (e.KeyCode == PutWeaponKey && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
             {
                 if (Game.Player.Character.Weapons.Current.Hash != WeaponHash.Unarmed)
                 {
@@ -219,7 +260,7 @@ namespace CarInventory
                 }
             }
 
-            if (e.KeyCode == takeWeaponKey && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
+            if (e.KeyCode == TakeWeaponKey && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
             {
                 try
                 {
@@ -230,7 +271,7 @@ namespace CarInventory
                 catch { }
             }
 
-            if (e.KeyCode == navigateLeft && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
+            if (e.KeyCode == NavigateLeft && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
             {
                 if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
                 {
@@ -241,7 +282,7 @@ namespace CarInventory
                 }
             }
 
-            if (e.KeyCode == navigateRight && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
+            if (e.KeyCode == NavigateRight && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
             {
                 if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
                 {
@@ -267,32 +308,49 @@ namespace CarInventory
                 //get all entities near
                 foreach (Vehicle car in all_near_vehicles)
                 {
-                    TrunkCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "neon_b"));
+                    Vector3 EngineCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "engine"));
+                    Vector3 HoodCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "bonnet"));
+                    Vector3 TrunkCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "boot"));
 
-                    if (car.IsOnScreen && World.GetDistance(Game.Player.Character.Position, TrunkCoord) < 1.5f)
+                    if (World.GetDistance(EngineCoord, TrunkCoord) > World.GetDistance(EngineCoord, HoodCoord))
+                        TrunkNeonCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "neon_b"));
+                    else
+                        TrunkNeonCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "neon_f"));
+
+                    if (car.IsOnScreen && World.GetDistance(Game.Player.Character.Position, TrunkNeonCoord) < 1.5f)
                     {
                         Vector2 vec = World3DToScreen2d(car.Position);
 
                         if (vec.X > 0.4f && vec.X < 0.6f && vec.Y > 0.1f && vec.Y < 0.9f && HasCarRequieredVehicleClass(car) && !car.IsDead)
                         {
                             currentVehicle = car;
+
+                            // draw info text about open/close trunk
+                            if (World.GetDistance(Game.Player.Character.Position, TrunkNeonCoord) < 2f && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
+                            {
+                                TrunkNeonCoord.Z += 1;
+                                vec = World3DToScreen2d(TrunkNeonCoord);
+
+                                if (World.GetDistance(EngineCoord, HoodCoord) < World.GetDistance(EngineCoord, TrunkCoord))
+                                {
+                                    if (!currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
+                                        DrawHackPanelText($"Press {OpenTrunkKey} to open/close the trunk", vec.X, vec.Y + 0.1, 0.36f, Color.White, true);
+
+                                    else
+                                        DrawInventoryPanel(TrunkNeonCoord);
+                                }
+
+                                else
+                                {
+                                    if (!currentVehicle.IsDoorOpen(VehicleDoor.Hood))
+                                        DrawHackPanelText($"Press {OpenTrunkKey} to open/close the trunk", vec.X, vec.Y + 0.1, 0.36f, Color.White, true);
+
+                                    else
+                                        DrawInventoryPanel(TrunkNeonCoord);
+                                }
+                            }
                             break;
                         }
-                    }
-                }
-
-                if (currentVehicle != null)
-                {
-                    if (World.GetDistance(Game.Player.Character.Position, TrunkCoord) < 2f && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
-                    {
-                        TrunkCoord.Z += 1;
-                        Vector2 vec = World3DToScreen2d(TrunkCoord);
-
-                        if (!currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
-                            DrawHackPanelText($"Press {openTrunkKey} to open/close the trunk", vec.X, vec.Y + 0.1, 0.36f, Color.White, true);
-
-                        if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
-                            DrawInventoryPanel(TrunkCoord);
                     }
                 }
             }
@@ -326,7 +384,7 @@ namespace CarInventory
             //headline rect
             Function.Call(Hash.DRAW_RECT, 1, 0.09, 0.18, 0.02, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
             //headline text
-            DrawHackPanelText($"{putWeaponKey} - put item, {takeWeaponKey} - take item, {navigateLeft} / {navigateRight} - navigate", 0, 0.078, 0.28, Color.White, true);
+            DrawHackPanelText($"{PutWeaponKey} - put item, {TakeWeaponKey} - take item, {NavigateLeft} / {NavigateRight} - navigate", 0, 0.078, 0.28, Color.White, true);
 
             double bias = 0.043;
             double x;
@@ -469,6 +527,7 @@ namespace CarInventory
 
                 File.AppendAllText(filename, $"\n{DateTime.Now}   {text}");
             }
+
             catch { }
         }
 
@@ -476,59 +535,48 @@ namespace CarInventory
         private void IniInitialization()
         {
             // checking parameters exist, create if don't exist
-            WriteToIniCongif(IniParameters);
+            WriteToIniCongif();
 
             // reading parameters from checked config file
-            ReadFromIniConfig(IniParameters);
+            ReadFromIniConfig();
         }
 
-        private void ReadFromIniConfig(Dictionary<string, string> IniParameters)
+        private void ReadFromIniConfig()
         {
             // parsing control keys
-            Enum.TryParse(myINI.Read("SETTINGS", IniParameters.ElementAt(0).Key), out openTrunkKey);
-            Enum.TryParse(myINI.Read("SETTINGS", IniParameters.ElementAt(1).Key), out putWeaponKey);
-            Enum.TryParse(myINI.Read("SETTINGS", IniParameters.ElementAt(2).Key), out takeWeaponKey);
-            Enum.TryParse(myINI.Read("SETTINGS", IniParameters.ElementAt(3).Key), out navigateLeft);
-            Enum.TryParse(myINI.Read("SETTINGS", IniParameters.ElementAt(4).Key), out navigateRight);
-
-            if (openTrunkKey == Keys.None)
+            foreach (var param in IniModKeysSettings.Keys.ToList())
             {
-                myINI.Write("SETTINGS", "OpenTrunkKey", "E");
-                openTrunkKey = Keys.E;
-            }
+                // sing key var
+                Keys key;
 
-            if (putWeaponKey == Keys.None)
-            {
-                myINI.Write("SETTINGS", "PutWeaponKey", "I");
-                putWeaponKey = Keys.I;
-            }
+                Enum.TryParse(myINI.Read("KEYS", param.ToString()), out key);
 
-            if (takeWeaponKey == Keys.None)
-            {
-                myINI.Write("SETTINGS", "TakeWeaponKey", "O");
-                takeWeaponKey = Keys.O;
-            }
+                IniModKeysSettings[param][1] = key;
 
-            if (navigateLeft == Keys.None)
-            {
-                myINI.Write("SETTINGS", "NavigateLeft", "Left");
-                navigateLeft = Keys.Left;
-            }
-
-            if (navigateRight == Keys.None)
-            {
-                myINI.Write("SETTINGS", "NavigateRight", "Right");
-                navigateRight = Keys.Right;
+                if (IniModKeysSettings[param][1] == Keys.None)
+                {
+                    myINI.Write("KEYS", IniModKeysSettings[param].ToString(), param.ToString());
+                    IniModKeysSettings[param][1] = IniModKeysSettings[param][0];
+                }
             }
         }
 
-        private void WriteToIniCongif(Dictionary<string, string> IniParameters)
+        private void WriteToIniCongif()
         {
-            foreach (var param in IniParameters)
+            // writing of keys parameters
+            for (int i = 0; i < IniModKeysSettings.Count; i++)
             {
-                if (!myINI.KeyExists(param.Key, "SETTINGS"))
+                if (!myINI.KeyExists(IniModKeysSettings.ElementAt(i).Key, "KEYS"))
                 {
-                    myINI.Write("SETTINGS", param.Key, param.Value);
+                    myINI.Write("KEYS", IniModKeysSettings.ElementAt(i).Key, IniModKeysSettings.ElementAt(i).Value[0].ToString());
+                }
+            }
+
+            for (int i = 0; i < IniModOtherSettings.Count; i++)
+            {
+                if (!myINI.KeyExists(IniModOtherSettings.ElementAt(i).Key, "SETTINGS"))
+                {
+                    myINI.Write("SETTINGS", IniModOtherSettings.ElementAt(i).Key, IniModOtherSettings.ElementAt(i).Value);
                 }
             }
         }
