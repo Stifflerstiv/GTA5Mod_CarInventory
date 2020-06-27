@@ -201,9 +201,6 @@ namespace CarInventory
 
         private void DebugFunc()
         {
-            //UI.ShowSubtitle($"key={openTrunkKey}, take={takeWeaponKey}, put={putWeaponKey}, count={CustomVehiclesList.Count}");
-
-            UI.ShowSubtitle($"tint={Game.Player.Character.Weapons.Current.Tint}");
             try
             {
                 UI.ShowSubtitle($"count={CustomVehiclesList.Count}");
@@ -214,107 +211,217 @@ namespace CarInventory
 
         void OnKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == OpenTrunkKey && currentVehicle != null && currentVehicle.LockStatus == VehicleLockStatus.Unlocked && !Game.Player.Character.IsInVehicle() && !Game.Player.Character.IsDead)
+            if (currentVehicle != null && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
             {
                 Vector3 EngineCoord = currentVehicle.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, currentVehicle, "engine"));
                 Vector3 HoodCoord = currentVehicle.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, currentVehicle, "bonnet"));
                 Vector3 TrunkCoord = currentVehicle.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, currentVehicle, "boot"));
 
-                if (World.GetDistance(EngineCoord, HoodCoord) < World.GetDistance(EngineCoord, TrunkCoord))
+                CustomVehicle customV = CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle);
+
+                if (e.KeyCode == OpenTrunkKey && !Game.Player.Character.IsInVehicle() && !Game.Player.Character.IsDead)
                 {
-                    if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
+                    if (World.GetDistance(EngineCoord, HoodCoord) < World.GetDistance(EngineCoord, TrunkCoord))
                     {
-                        // playing close trunk anitation
-                        Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "enter", 8f, 400, false, -1f);
-                        currentVehicle.CloseDoor(VehicleDoor.Trunk, false);
+                        if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
+                        {
+                            // playing close trunk anitation
+                            Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "enter", 8f, 400, false, -1f);
+                            currentVehicle.CloseDoor(VehicleDoor.Trunk, false);
+                        }
+
+                        else
+                        {
+                            // playing open trunk anitation
+                            Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "exit", 8f, 400, false, -1f);
+                            currentVehicle.OpenDoor(VehicleDoor.Trunk, false, false);
+                        }
                     }
 
                     else
                     {
-                        // playing open trunk anitation
-                        Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "exit", 8f, 400, false, -1f);
-                        currentVehicle.OpenDoor(VehicleDoor.Trunk, false, false);
+                        if (currentVehicle.IsDoorOpen(VehicleDoor.Hood))
+                        {
+                            // playing close trunk anitation
+                            Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "enter", 8f, 400, false, -1f);
+                            currentVehicle.CloseDoor(VehicleDoor.Hood, false);
+                        }
+
+                        else
+                        {
+                            // playing open trunk anitation
+                            Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "exit", 8f, 400, false, -1f);
+                            currentVehicle.OpenDoor(VehicleDoor.Hood, false, false);
+                        }
                     }
                 }
 
-                else
+
+                if (e.KeyCode == PutWeaponKey)
                 {
-                    if (currentVehicle.IsDoorOpen(VehicleDoor.Hood))
+                    if (Game.Player.Character.Weapons.Current.Hash != WeaponHash.Unarmed)
                     {
-                        // playing close trunk anitation
-                        Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "enter", 8f, 400, false, -1f);
-                        currentVehicle.CloseDoor(VehicleDoor.Hood, false);
+                        if (World.GetDistance(EngineCoord, HoodCoord) < World.GetDistance(EngineCoord, TrunkCoord))
+                        {
+                            if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
+                            {
+                                customV.AddToVehicleInventory(Game.Player.Character.Weapons.Current, Game.Player.Character.Weapons.Current.Ammo);
+                                Game.PlaySound("Grab_Parachute", "BASEJUMPS_SOUNDS");
+                            }
+                        }
+
+                        else
+                        {
+                            if (currentVehicle.IsDoorOpen(VehicleDoor.Hood))
+                            {
+                                customV.AddToVehicleInventory(Game.Player.Character.Weapons.Current, Game.Player.Character.Weapons.Current.Ammo);
+                                Game.PlaySound("Grab_Parachute", "BASEJUMPS_SOUNDS");
+                            }
+                        }
+                    }                
+                }
+
+
+                if (e.KeyCode == TakeWeaponKey)
+                {
+                    if (World.GetDistance(EngineCoord, HoodCoord) < World.GetDistance(EngineCoord, TrunkCoord))
+                    {
+                        if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
+                        {
+                            customV.RemoveFromVehicleInventory();
+                            Game.PlaySound("Grab_Parachute", "BASEJUMPS_SOUNDS");
+                        }                        
                     }
 
                     else
                     {
-                        // playing open trunk anitation
-                        Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "exit", 8f, 400, false, -1f);
-                        currentVehicle.OpenDoor(VehicleDoor.Hood, false, false);
+                        if (currentVehicle.IsDoorOpen(VehicleDoor.Hood))
+                        {
+                            customV.RemoveFromVehicleInventory();
+                            Game.PlaySound("Grab_Parachute", "BASEJUMPS_SOUNDS");
+                        }                        
+                    }                    
+                }
+
+
+                if (e.KeyCode == NavigateLeft)
+                {
+                    if (World.GetDistance(EngineCoord, HoodCoord) < World.GetDistance(EngineCoord, TrunkCoord))
+                    {
+                        if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
+                        {
+                            customV.cursorPos[0]--;
+
+                            if (customV.cursorPos[0] < 0)
+                                customV.cursorPos[0] = invSizeByRequiredVehicleClass[currentVehicle.ClassType][0] - 1;
+
+                            Game.PlaySound("NAV_UP_DOWN", "HUD_MINI_GAME_SOUNDSET");
+                        }
+                    }
+
+                    else
+                    {
+                        if (currentVehicle.IsDoorOpen(VehicleDoor.Hood))
+                        {
+                            customV.cursorPos[0]--;
+
+                            if (customV.cursorPos[0] < 0)
+                                customV.cursorPos[0] = invSizeByRequiredVehicleClass[currentVehicle.ClassType][0] - 1;
+
+                            Game.PlaySound("NAV_UP_DOWN", "HUD_MINI_GAME_SOUNDSET");
+                        }
                     }
                 }
-            }
 
 
-            if (e.KeyCode == PutWeaponKey && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
-            {
-                if (Game.Player.Character.Weapons.Current.Hash != WeaponHash.Unarmed)
+                if (e.KeyCode == NavigateRight)
                 {
-                    CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).AddToVehicleInventory(Game.Player.Character.Weapons.Current, Game.Player.Character.Weapons.Current.Ammo);
+                    if (World.GetDistance(EngineCoord, HoodCoord) < World.GetDistance(EngineCoord, TrunkCoord))
+                    {
+                        if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
+                        {
+                            customV.cursorPos[0]++;
+
+                            if (customV.cursorPos[0] > invSizeByRequiredVehicleClass[currentVehicle.ClassType][1] - 1)
+                                customV.cursorPos[0] = 0;
+
+                            Game.PlaySound("NAV_UP_DOWN", "HUD_MINI_GAME_SOUNDSET");
+                        }
+                    }
+
+                    else
+                    {
+                        if (currentVehicle.IsDoorOpen(VehicleDoor.Hood))
+                        {
+                            customV.cursorPos[0]++;
+
+                            if (customV.cursorPos[0] > invSizeByRequiredVehicleClass[currentVehicle.ClassType][1] - 1)
+                                customV.cursorPos[0] = 0;
+
+                            Game.PlaySound("NAV_UP_DOWN", "HUD_MINI_GAME_SOUNDSET");
+                        }
+                    }
                 }
-            }
 
 
-            if (e.KeyCode == TakeWeaponKey && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
-            {                 
-                CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).RemoveFromVehicleInventory();
-            }
-
-
-            if (e.KeyCode == NavigateLeft && currentVehicle != null && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
-            {
-                if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
+                if (e.KeyCode == NavigateUp)
                 {
-                    CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[0]--;
+                    if (World.GetDistance(EngineCoord, HoodCoord) < World.GetDistance(EngineCoord, TrunkCoord))
+                    {
+                        if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
+                        {
+                            customV.cursorPos[1]--;
 
-                    if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[0] < 0)
-                        CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[0] = invSizeByRequiredVehicleClass[currentVehicle.ClassType][0] - 1;
+                            if (customV.cursorPos[1] < 0)
+                                customV.cursorPos[1] = invSizeByRequiredVehicleClass[currentVehicle.ClassType][1] - 1;
+
+                            Game.PlaySound("NAV_UP_DOWN", "HUD_MINI_GAME_SOUNDSET");
+                        }
+                    }
+
+                    else
+                    {
+                        if (currentVehicle.IsDoorOpen(VehicleDoor.Hood))
+                        {
+                            customV.cursorPos[1]--;
+
+                            if (customV.cursorPos[1] < 0)
+                                customV.cursorPos[1] = invSizeByRequiredVehicleClass[currentVehicle.ClassType][1] - 1;
+
+                            Game.PlaySound("NAV_UP_DOWN", "HUD_MINI_GAME_SOUNDSET");
+                        }
+                    }
                 }
-            }
 
 
-            if (e.KeyCode == NavigateRight && currentVehicle != null  && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
-            {
-                if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
+                if (e.KeyCode == NavigateDown)
                 {
-                    //int rows = CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).CustomVehicleInventory.GetUpperBound(0) + 1;
-                    CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[0]++;
+                    if (World.GetDistance(EngineCoord, HoodCoord) < World.GetDistance(EngineCoord, TrunkCoord))
+                    {
+                        if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
+                        {
+                            customV.cursorPos[1]++;
 
-                    if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[0] > invSizeByRequiredVehicleClass[currentVehicle.ClassType][1] - 1)
-                        CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[0] = 0;
+                            if (customV.cursorPos[1] > invSizeByRequiredVehicleClass[currentVehicle.ClassType][1] - 1)
+                                customV.cursorPos[1] = 0;
+
+                            Game.PlaySound("NAV_UP_DOWN", "HUD_MINI_GAME_SOUNDSET");
+                        }
+                    }
+
+                    else
+                    {
+                        if (currentVehicle.IsDoorOpen(VehicleDoor.Hood))
+                        {
+                            customV.cursorPos[1]++;
+
+                            if (customV.cursorPos[1] > invSizeByRequiredVehicleClass[currentVehicle.ClassType][1] - 1)
+                                customV.cursorPos[1] = 0;
+
+                            Game.PlaySound("NAV_UP_DOWN", "HUD_MINI_GAME_SOUNDSET");
+                        }
+                    }
                 }
-            }
-
-
-            if (e.KeyCode == NavigateUp && currentVehicle != null && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
-            {
-                CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[1]--;
-
-                if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[1] < 0)
-                    CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[1] = invSizeByRequiredVehicleClass[currentVehicle.ClassType][1] - 1;
-
-
-            }
-
-
-            if (e.KeyCode == NavigateDown && currentVehicle != null && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
-            {
-                CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[1]++;
-
-                if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[1] > invSizeByRequiredVehicleClass[currentVehicle.ClassType][1] - 1)
-                    CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[1] = 0;
-
-
             }
         }
 
@@ -397,11 +504,12 @@ namespace CarInventory
             Function.Call(Hash.DRAW_RECT, 1, -0.12, 0.18, 0.02, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
             //headline text
 
+            CustomVehicle custVehicle= CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle);
             string weaponName;
 
             try
             {
-                weaponName = CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).CustomVehicleInventory[CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[0], CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[1]].CustomWeaponModel.Name;
+                weaponName = custVehicle.CustomVehicleInventory[custVehicle.cursorPos[0], custVehicle.cursorPos[1]].CustomWeaponModel.Name;
             }
 
             catch
@@ -414,7 +522,7 @@ namespace CarInventory
             //headline rect
             Function.Call(Hash.DRAW_RECT, 1, 0.12, 0.18, 0.02, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
             //headline text
-            DrawHackPanelText($"{PutWeaponKey} - put item, {TakeWeaponKey} - take item, {NavigateLeft} / {NavigateRight} / {NavigateUp} / {NavigateDown} - navigate", 0, 0.109, 0.24, Color.White, true);
+            DrawHackPanelText($"{PutWeaponKey} - put item, {TakeWeaponKey} - take item, {NavigateLeft} / {NavigateRight} / {NavigateUp} / {NavigateDown} - navigate", 0, 0.109, 0.245, Color.White, true);
 
             double bias = 0.043;
             double x;
@@ -436,17 +544,17 @@ namespace CarInventory
                     Function.Call(Hash.DRAW_RECT, x, y + 0.01 * j, 0.035, 0.045, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
 
                     //draw cursor
-                    if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[0] == i && CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[1] == j)
+                    if (custVehicle.cursorPos[0] == i && custVehicle.cursorPos[1] == j)
                         Function.Call(Hash.DRAW_RECT, x, y + 0.01 * j, 0.035, 0.045, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 120);
 
-                    if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).CustomVehicleInventory[i, j] != null)
+                    if (custVehicle.CustomVehicleInventory[i, j] != null)
                     {
                         //draw weapon icon
-                        Function.Call(Hash.DRAW_SPRITE, "mpkillquota", ReturnWeaponIconTextureName(CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).CustomVehicleInventory[i, j].CustomWeaponModel.Hash), x, y + 0.01 * j, 0.045, 0.04, 0.0, Color.White.R, Color.White.G, Color.White.B, 255);
+                        Function.Call(Hash.DRAW_SPRITE, "mpkillquota", ReturnWeaponIconTextureName(custVehicle.CustomVehicleInventory[i, j].CustomWeaponModel.Hash), x, y + 0.01 * j, 0.035, 0.03, 0.0, Color.White.R, Color.White.G, Color.White.B, 255);
 
                         // draw weapon's ammo
-                        if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).CustomVehicleInventory[i, j].CustomWeaponModel.Group != WeaponGroup.Melee)
-                            DrawHackPanelText($"{CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).CustomVehicleInventory[i, j].CustomWeaponAmmo}", x + 0.01, y + 0.005 + 0.01 * j, 0.25, Color.White, true);
+                        if (custVehicle.CustomVehicleInventory[i, j].CustomWeaponModel.Group != WeaponGroup.Melee)
+                            DrawHackPanelText($"{custVehicle.CustomVehicleInventory[i, j].CustomWeaponAmmo}", x + 0.01, y + 0.005 + 0.01 * j, 0.25, Color.White, true);
                     }
                 }
             }

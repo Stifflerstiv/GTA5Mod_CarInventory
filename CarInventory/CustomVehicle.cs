@@ -36,15 +36,20 @@ namespace CarInventory
             int rows = CustomVehicleInventory.GetUpperBound(0) + 1;
             int columns = CustomVehicleInventory.Length / rows;
 
-            if (!CheckHasWeaponInInventory(weap))
+            if (!HasWeaponInInventory(weap))
             {
-                if (CustomVehicleInventory[cursorPos[0], cursorPos[1]] == null)
+                CustomWeapon custWeap = new CustomWeapon(weap, GetAllWeaponComponentsList(Game.Player.Character.Weapons.Current), Game.Player.Character.Weapons.Current.Tint, ammo);
+                Game.Player.Character.Weapons.Current.Ammo = 0;                
+
+                if (CustomVehicleInventory[cursorPos[0], cursorPos[1]] != null)
                 {
-                    CustomVehicleInventory[cursorPos[0], cursorPos[1]] = new CustomWeapon(weap, GetAllWeaponComponentsList(Game.Player.Character.Weapons.Current), Game.Player.Character.Weapons.Current.Tint, ammo);
-                    Game.Player.Character.Task.PlayAnimation("anim@heists@narcotics@trash", "drop_front", 8f, 1500, false, -80f);
-                    Game.Player.Character.Weapons.Current.Ammo = 0;
-                    Game.Player.Character.Weapons.Remove(weap.Hash);
+                    RemoveFromVehicleInventory();
                 }
+
+                CustomVehicleInventory[cursorPos[0], cursorPos[1]] = custWeap;
+                Game.Player.Character.Weapons.Remove(weap.Hash);
+
+                Game.Player.Character.Task.PlayAnimation("anim@heists@narcotics@trash", "drop_front", 8f, 1500, false, -80f);
             }
 
             else
@@ -65,7 +70,7 @@ namespace CarInventory
             }
         }
 
-        public bool CheckHasWeaponInInventory(Weapon weap)
+        public bool HasWeaponInInventory(Weapon weap)
         {
             int rows = CustomVehicleInventory.GetLength(0);
             int columns = CustomVehicleInventory.GetLength(1);
@@ -87,7 +92,7 @@ namespace CarInventory
             return false;
         }
 
-        public bool CheckEmptyInventory() 
+        public bool IsEmptyInventory() 
         {
             int rows = CustomVehicleInventory.GetUpperBound(0) + 1;
             int columns = CustomVehicleInventory.Length / rows;
