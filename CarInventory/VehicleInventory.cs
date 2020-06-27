@@ -15,7 +15,7 @@ namespace CarInventory
         private readonly string modName = "CarInventory";
         private readonly string modVersion = "1.04";
         private readonly string modAuthor = "Stifflerstiv";
-        private readonly bool debugMode = false;
+        private readonly bool debugMode = true;
 
         // ini keys
         Keys OpenTrunkKey;
@@ -23,7 +23,8 @@ namespace CarInventory
         Keys TakeWeaponKey;
         Keys NavigateLeft;
         Keys NavigateRight;
-
+        Keys NavigateUp;
+        Keys NavigateDown;
         // ini parameters
 
         private List<CustomVehicle> CustomVehiclesList = new List<CustomVehicle>() { };
@@ -31,9 +32,20 @@ namespace CarInventory
         private Vector3 TrunkNeonCoord;
         private Vehicle currentVehicle = null;
 
-        private int cursorPos = 0;        
+        // inventory size by vehicle class
+        private Dictionary<VehicleClass, int[]> invSizeByRequiredVehicleClass = new Dictionary<VehicleClass, int[]>()
+        {
+            [VehicleClass.Sports] = new int[] { 4, 4 },
+            [VehicleClass.SportsClassics] = new int[] { 4, 4 },
+            [VehicleClass.Sedans] = new int[] { 4, 4 },
+            [VehicleClass.Super] = new int[] { 4, 4 },
+            [VehicleClass.Coupes] = new int[] { 4, 4 },
+            [VehicleClass.Compacts] = new int[] { 4, 4 },
+            [VehicleClass.Muscle] = new int[] { 4, 4 },
+            [VehicleClass.SUVs] = new int[] { 4, 4 },
+        };
 
-        private readonly Dictionary<WeaponHash, string> WeaponsIconsDict = new Dictionary<WeaponHash, string>() 
+        private readonly Dictionary<WeaponHash, string> WeaponsIconsDict = new Dictionary<WeaponHash, string>()
         {
             [WeaponHash.SniperRifle] = "weapon_sniper",
             [WeaponHash.FireExtinguisher] = "weapon_thrown_bz_gas",
@@ -137,8 +149,10 @@ namespace CarInventory
             ["OpenTrunkKey"] = new List<Keys>() { Keys.E, Keys.None },
             ["PutWeaponKey"] = new List<Keys>() { Keys.I, Keys.None },
             ["TakeWeaponKey"] = new List<Keys>() { Keys.O, Keys.None },
-            ["NavigateLeft"] = new List<Keys>() { Keys.Left, Keys.None },
-            ["NavigateRight"] = new List<Keys>() { Keys.Right, Keys.None },
+            ["NavigateLeft"] = new List<Keys>() { Keys.NumPad4, Keys.None },
+            ["NavigateRight"] = new List<Keys>() { Keys.NumPad6, Keys.None },
+            ["NavigateUp"] = new List<Keys>() { Keys.NumPad8, Keys.None },
+            ["NavigateDown"] = new List<Keys>() { Keys.NumPad2, Keys.None },
         };
         //dict of mod settings
         private Dictionary<string, string> IniModOtherSettings = new Dictionary<string, string>() { };
@@ -160,7 +174,8 @@ namespace CarInventory
             TakeWeaponKey = IniModKeysSettings.ElementAt(2).Value[1];
             NavigateLeft = IniModKeysSettings.ElementAt(3).Value[1];
             NavigateRight = IniModKeysSettings.ElementAt(4).Value[1];
-
+            NavigateUp = IniModKeysSettings.ElementAt(5).Value[1];
+            NavigateDown = IniModKeysSettings.ElementAt(6).Value[1];
 
             // end of initialization
             KeyDown += OnKeyDown;
@@ -168,11 +183,13 @@ namespace CarInventory
 
             // icons streaming
             Function.Call(Hash.REQUEST_STREAMED_TEXTURE_DICT, "mpkillquota", false);
+
             foreach (string texture in WeaponsIconsDict.Values)
             {
                 Function.Call(Hash.HAS_STREAMED_TEXTURE_DICT_LOADED, texture);
             }
         }
+
         void OnTick(object sender, EventArgs e)
         {
             MainInventory();
@@ -189,16 +206,7 @@ namespace CarInventory
             UI.ShowSubtitle($"tint={Game.Player.Character.Weapons.Current.Tint}");
             try
             {
-                string components = "";
-
-                List<WeaponComponent> allValues = ContainsAVehicleCurrentCustomVehiclesList(currentVehicle).CustomVehicleInventory.ElementAt(cursorPos).CustomWeaponComponentList;
-
-                foreach (WeaponComponent comp in allValues)
-                {
-                    components += comp.ToString() + ", ";
-                }
-
-                UI.ShowSubtitle($"comp={components}");
+                UI.ShowSubtitle($"count={CustomVehiclesList.Count}");
             }
 
             catch { }
@@ -229,7 +237,7 @@ namespace CarInventory
                     }
                 }
 
-                else 
+                else
                 {
                     if (currentVehicle.IsDoorOpen(VehicleDoor.Hood))
                     {
@@ -247,54 +255,70 @@ namespace CarInventory
                 }
             }
 
+
             if (e.KeyCode == PutWeaponKey && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
             {
                 if (Game.Player.Character.Weapons.Current.Hash != WeaponHash.Unarmed)
                 {
-                    if (!CustomVehiclesList.Contains(ContainsAVehicleCurrentCustomVehiclesList(currentVehicle)))
-                    {
-                        CustomVehiclesList.Add(new CustomVehicle(currentVehicle));
-                    }
-                    
                     CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).AddToVehicleInventory(Game.Player.Character.Weapons.Current, Game.Player.Character.Weapons.Current.Ammo);
                 }
             }
 
+
             if (e.KeyCode == TakeWeaponKey && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
-            {
-                try
-                {
-                    if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).CustomVehicleInventory.Contains(CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).CustomVehicleInventory.ElementAt(cursorPos)))
-                        CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).RemoveFromVehicleInventory(cursorPos);
-                }
-
-                catch { }
+            {                 
+                CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).RemoveFromVehicleInventory();
             }
 
-            if (e.KeyCode == NavigateLeft && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
+
+            if (e.KeyCode == NavigateLeft && currentVehicle != null && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
             {
                 if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
                 {
-                    cursorPos--;
+                    CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[0]--;
 
-                    if (cursorPos < 0)
-                        cursorPos = 7;
+                    if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[0] < 0)
+                        CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[0] = invSizeByRequiredVehicleClass[currentVehicle.ClassType][0] - 1;
                 }
             }
 
-            if (e.KeyCode == NavigateRight && currentVehicle != null && currentVehicle.IsDoorOpen(VehicleDoor.Trunk) && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
+
+            if (e.KeyCode == NavigateRight && currentVehicle != null  && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
             {
                 if (currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
                 {
-                    cursorPos++;
+                    //int rows = CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).CustomVehicleInventory.GetUpperBound(0) + 1;
+                    CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[0]++;
 
-                    if (cursorPos > 7)
-                        cursorPos = 0;
+                    if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[0] > invSizeByRequiredVehicleClass[currentVehicle.ClassType][1] - 1)
+                        CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[0] = 0;
                 }
+            }
+
+
+            if (e.KeyCode == NavigateUp && currentVehicle != null && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
+            {
+                CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[1]--;
+
+                if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[1] < 0)
+                    CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[1] = invSizeByRequiredVehicleClass[currentVehicle.ClassType][1] - 1;
+
+
+            }
+
+
+            if (e.KeyCode == NavigateDown && currentVehicle != null && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
+            {
+                CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[1]++;
+
+                if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[1] > invSizeByRequiredVehicleClass[currentVehicle.ClassType][1] - 1)
+                    CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[1] = 0;
+
+
             }
         }
 
-        private void MainInventory() 
+        private void MainInventory()
         {
             currentVehicle = null;
 
@@ -321,9 +345,14 @@ namespace CarInventory
                     {
                         Vector2 vec = World3DToScreen2d(car.Position);
 
-                        if (vec.X > 0.4f && vec.X < 0.6f && vec.Y > 0.1f && vec.Y < 0.9f && HasCarRequieredVehicleClass(car) && !car.IsDead)
+                        if (vec.X > 0.4f && vec.X < 0.6f && vec.Y > 0.1f && vec.Y < 0.9f && invSizeByRequiredVehicleClass.ContainsKey(car.ClassType) && !car.IsDead)
                         {
                             currentVehicle = car;
+
+                            if (!CustomVehiclesList.Contains(ContainsAVehicleCurrentCustomVehiclesList(currentVehicle)) && invSizeByRequiredVehicleClass.ContainsKey(currentVehicle.ClassType))
+                            {
+                                CustomVehiclesList.Add(new CustomVehicle(currentVehicle, invSizeByRequiredVehicleClass[currentVehicle.ClassType]));
+                            }
 
                             // draw info text about open/close trunk
                             if (World.GetDistance(Game.Player.Character.Position, TrunkNeonCoord) < 2f && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
@@ -349,6 +378,7 @@ namespace CarInventory
                                         DrawInventoryPanel(TrunkNeonCoord);
                                 }
                             }
+
                             break;
                         }
                     }
@@ -356,104 +386,76 @@ namespace CarInventory
             }
         }
 
-        private void DrawInventoryPanel(Vector3 TrunkCoord) 
+        private void DrawInventoryPanel(Vector3 TrunkCoord)
         {
             Function.Call(Hash.SET_DRAW_ORIGIN, TrunkCoord.X, TrunkCoord.Y, TrunkCoord.Z, 0);
 
             //background rect
-            Function.Call(Hash.DRAW_RECT, 1, 1, 0.18, 0.2, Color.Black.R, Color.Black.G, Color.Black.B, 160);
+            Function.Call(Hash.DRAW_RECT, 1, 1, 0.18, 0.26, Color.Black.R, Color.Black.G, Color.Black.B, 160);
 
             //headline rect
-            Function.Call(Hash.DRAW_RECT, 1, -0.09, 0.18, 0.02, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
+            Function.Call(Hash.DRAW_RECT, 1, -0.12, 0.18, 0.02, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
             //headline text
 
             string weaponName;
 
             try
             {
-                weaponName = ContainsAVehicleCurrentCustomVehiclesList(currentVehicle).CustomVehicleInventory.ElementAt(cursorPos).CustomWeaponModel.Name;
+                weaponName = CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).CustomVehicleInventory[CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[0], CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[1]].CustomWeaponModel.Name;
             }
 
-            catch 
-            { 
-                weaponName = "Empty"; 
+            catch
+            {
+                weaponName = "Empty";
             }
 
-            DrawHackPanelText($"Selected: {weaponName}", 0, -0.103, 0.35, Color.White, true);
+            DrawHackPanelText($"Selected: {weaponName}", 0, -0.133, 0.35, Color.White, true);
 
             //headline rect
-            Function.Call(Hash.DRAW_RECT, 1, 0.09, 0.18, 0.02, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
+            Function.Call(Hash.DRAW_RECT, 1, 0.12, 0.18, 0.02, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
             //headline text
-            DrawHackPanelText($"{PutWeaponKey} - put item, {TakeWeaponKey} - take item, {NavigateLeft} / {NavigateRight} - navigate", 0, 0.078, 0.28, Color.White, true);
+            DrawHackPanelText($"{PutWeaponKey} - put item, {TakeWeaponKey} - take item, {NavigateLeft} / {NavigateRight} / {NavigateUp} / {NavigateDown} - navigate", 0, 0.109, 0.24, Color.White, true);
 
             double bias = 0.043;
             double x;
             double y;
 
-            //draw inventory cells
-            for (int i = 0; i < 8; i++)
+            int rows = invSizeByRequiredVehicleClass[currentVehicle.ClassType][0];
+            int columns = invSizeByRequiredVehicleClass[currentVehicle.ClassType][1];
+
+            UI.ShowSubtitle($"rows = {rows}, columns = {columns}");
+
+            // draw inventory
+            for (int i = 0; i < rows; i++)
             {
-                if (i < 4)
-                {
-                    x = -0.065 + bias * i;
-                    y = -0.04;
-                }
+                x = -0.065 + bias * i;
+                for (int j = 0; j < columns; j++)
+                {                    
+                    y = -0.08 + bias * j;
+                    // draw cell
+                    Function.Call(Hash.DRAW_RECT, x, y + 0.01 * j, 0.035, 0.045, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
 
-                else
-                {
-                    x = -0.065 + bias * Math.Abs(4 - i);
-                    y = 0.03;
-                }
-                // draw cell
-                Function.Call(Hash.DRAW_RECT, x, y, 0.035, 0.05, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
+                    //draw cursor
+                    if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[0] == i && CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).cursorPos[1] == j)
+                        Function.Call(Hash.DRAW_RECT, x, y + 0.01 * j, 0.035, 0.045, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 120);
 
-                //draw cursor
-                if (cursorPos == i)
-                    Function.Call(Hash.DRAW_RECT, x, y, 0.035, 0.05, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 120);
-            }
-
-            //draw inventory items icons
-            foreach (CustomVehicle cust in CustomVehiclesList)
-            {
-                if (cust.CustomModel == currentVehicle)
-                {
-                    for (int i = 0; i < cust.CustomVehicleInventory.Count; i++)
+                    if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).CustomVehicleInventory[i, j] != null)
                     {
-                        try
-                        {
-                            if (cust.CustomVehicleInventory.Contains(cust.CustomVehicleInventory.ElementAt(i)))
-                            {
-                                if (i < 4)
-                                {
-                                    x = -0.065 + bias * i;
-                                    y = -0.04;
-                                }
+                        //draw weapon icon
+                        Function.Call(Hash.DRAW_SPRITE, "mpkillquota", ReturnWeaponIconTextureName(CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).CustomVehicleInventory[i, j].CustomWeaponModel.Hash), x, y + 0.01 * j, 0.045, 0.04, 0.0, Color.White.R, Color.White.G, Color.White.B, 255);
 
-                                else
-                                {
-                                    x = -0.065 + bias * Math.Abs(4 - i);
-                                    y = 0.03;
-                                }
-                                //draw weapon icon
-                                Function.Call(Hash.DRAW_SPRITE, "mpkillquota", ReturnWeaponIconTextureName(cust.CustomVehicleInventory.ElementAt(i).CustomWeaponModel.Hash), x, y, 0.035, 0.03, 0.0, Color.White.R, Color.White.G, Color.White.B, 255);
-                                
-                                // draw weapon's ammo
-                                if (cust.CustomVehicleInventory.ElementAt(i).CustomWeaponModel.Group != WeaponGroup.Melee)
-                                    DrawHackPanelText($"{cust.CustomVehicleInventory.ElementAt(i).CustomWeaponAmmo}", x + 0.01, y + 0.005, 0.25, Color.White, true);
-                            }
-                        }
-
-                        catch { continue; }
+                        // draw weapon's ammo
+                        if (CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).CustomVehicleInventory[i, j].CustomWeaponModel.Group != WeaponGroup.Melee)
+                            DrawHackPanelText($"{CustomVehiclesList.Find(cust => cust.CustomModel == currentVehicle).CustomVehicleInventory[i, j].CustomWeaponAmmo}", x + 0.01, y + 0.005 + 0.01 * j, 0.25, Color.White, true);
                     }
-
-                    break;
                 }
             }
 
+            // end of draw of inventory
             Function.Call(Hash.CLEAR_DRAW_ORIGIN);
         }
 
-        private string ReturnWeaponIconTextureName(WeaponHash hash) 
+        private string ReturnWeaponIconTextureName(WeaponHash hash)
         {
             if (WeaponsIconsDict.ContainsKey(hash))
                 return WeaponsIconsDict[hash];
@@ -461,36 +463,28 @@ namespace CarInventory
             else
                 return "vehicle_weapon_player_buzzard";
         }
-        private CustomVehicle ContainsAVehicleCurrentCustomVehiclesList(Vehicle car) 
+        private CustomVehicle ContainsAVehicleCurrentCustomVehiclesList(Vehicle car)
         {
             try
             {
                 return CustomVehiclesList.First(veh => veh.CustomModel == car);
             }
 
-            catch 
-            { 
-                return null; 
+            catch
+            {
+                return null;
             }
         }
         private void RemoveDontExistCustomVehicles()
         {
             try
             {
-                CustomVehiclesList.RemoveAll(cust => cust.CustomModel.Exists() == false || cust.CustomVehicleInventory.Count == 0);
+                CustomVehiclesList.RemoveAll(cust => cust.CustomModel.Exists() == false);
             }
 
             catch (Exception ext) { WriteToLogFile(ext.ToString()); }
         }
-        private bool HasCarRequieredVehicleClass(Vehicle car)
-        {
-            var listOfVehicleClasses = new List<VehicleClass> 
-            { 
-                VehicleClass.Sports, VehicleClass.SportsClassics, VehicleClass.Sedans, VehicleClass.Super, VehicleClass.Coupes, VehicleClass.Compacts, VehicleClass.Muscle, VehicleClass.SUVs
-            };
 
-            return listOfVehicleClasses.Contains(car.ClassType);
-        }
         // get convert 3d coord to 2d coord for screen
         Vector2 World3DToScreen2d(Vector3 pos)
         {
@@ -530,6 +524,13 @@ namespace CarInventory
 
             catch { }
         }
+
+
+
+
+
+
+
 
         //------------------------------ INI Section ----------------------
         private void IniInitialization()
