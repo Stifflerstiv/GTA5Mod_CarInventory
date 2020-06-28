@@ -68,6 +68,8 @@ namespace CarInventory
                     }
                 }
             }
+
+            Game.PlaySound("Grab_Parachute", "BASEJUMPS_SOUNDS");
         }
 
         public bool HasWeaponInInventory(Weapon weap)
@@ -125,6 +127,7 @@ namespace CarInventory
                 Game.Player.Character.Weapons.Current.Tint = CustomVehicleInventory[cursorPos[0], cursorPos[1]].CustomWeaponTint;
 
                 CustomVehicleInventory[cursorPos[0], cursorPos[1]] = null;
+                Game.PlaySound("Grab_Parachute", "BASEJUMPS_SOUNDS");
             }
         }
 

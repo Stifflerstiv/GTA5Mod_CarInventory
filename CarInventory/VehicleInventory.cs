@@ -15,7 +15,7 @@ namespace CarInventory
         private readonly string modName = "CarInventory";
         private readonly string modVersion = "1.04";
         private readonly string modAuthor = "Stifflerstiv";
-        private readonly bool debugMode = true;
+        private readonly bool debugMode = false;
 
         // ini keys
         Keys OpenTrunkKey;
@@ -45,102 +45,6 @@ namespace CarInventory
             [VehicleClass.SUVs] = new int[] { 4, 4 },
         };
 
-        private readonly Dictionary<WeaponHash, string> WeaponsIconsDict = new Dictionary<WeaponHash, string>()
-        {
-            [WeaponHash.SniperRifle] = "weapon_sniper",
-            [WeaponHash.FireExtinguisher] = "weapon_thrown_bz_gas",
-            [WeaponHash.CompactGrenadeLauncher] = "weapon_compact_grenade_launcher",
-            [WeaponHash.Snowball] = "weapon_ball",
-            [WeaponHash.VintagePistol] = "weapon_vintagepistol",
-            [WeaponHash.CombatPDW] = "weapon_combatpdw",
-            [WeaponHash.HeavySniperMk2] = "weapon_sniper_heavy",
-            [WeaponHash.HeavySniper] = "weapon_sniper_heavy",
-            [WeaponHash.SweeperShotgun] = "weapon_automatic_shotgun",
-            [WeaponHash.MicroSMG] = "weapon_smg_micro",
-            [WeaponHash.Wrench] = "weapon_wrench",
-            [WeaponHash.Pistol] = "weapon_pistol",
-            [WeaponHash.PumpShotgun] = "weapon_shotgun_pump",
-            [WeaponHash.APPistol] = "weapon_pistol_ap",
-            [WeaponHash.Ball] = "weapon_ball",
-            [WeaponHash.Molotov] = "weapon_molotov",
-            [WeaponHash.SMG] = "weapon_smg",
-            [WeaponHash.StickyBomb] = "weapon_thrown_sticky",
-            [WeaponHash.PetrolCan] = "weapon_jerry_can",
-            [WeaponHash.StunGun] = "weapon_stungun",
-            [WeaponHash.AssaultrifleMk2] = "weapon_rifle_assault",
-            [WeaponHash.HeavyShotgun] = "weapon_shotgun_assault",
-            [WeaponHash.Minigun] = "weapon_heavy_minigun",
-            [WeaponHash.GolfClub] = "weapon_golfclub",
-            [WeaponHash.UnholyHellbringer] = "weapon_programmable_ar",
-            [WeaponHash.FlareGun] = "weapon_flare_gun",
-            [WeaponHash.Flare] = "weapon_flare",
-            [WeaponHash.GrenadeLauncherSmoke] = "weapon_heavy_grenade_launcher",
-            [WeaponHash.Hammer] = "weapon_hammer",
-            [WeaponHash.PumpShotgunMk2] = "weapon_shotgun_pump",
-            [WeaponHash.CombatPistol] = "weapon_pistol_combat",
-            [WeaponHash.Gusenberg] = "weapon_gusenberg",
-            [WeaponHash.CompactRifle] = "weapon_compactrifle",
-            [WeaponHash.HomingLauncher] = "weapon_hominglauncher",
-            [WeaponHash.Nightstick] = "weapon_nightstick",
-            [WeaponHash.MarksmanRifleMk2] = "weapon_marksmanrifle",
-            [WeaponHash.Railgun] = "weapon_railgun",
-            [WeaponHash.SawnOffShotgun] = "weapon_shotgun_sawnoff",
-            [WeaponHash.SMGMk2] = "weapon_smg",
-            [WeaponHash.BullpupRifle] = "weapon_bullpuprifle",
-            [WeaponHash.Firework] = "weapon_firework",
-            [WeaponHash.CombatMG] = "weapon_lmg_combat",
-            [WeaponHash.CarbineRifle] = "weapon_rifle_carbine",
-            [WeaponHash.Crowbar] = "weapon_crowbar",
-            [WeaponHash.BullpupRifleMk2] = "weapon_bullpuprifle",
-            [WeaponHash.SNSPistolMk2] = "weapon_snspistol",
-            [WeaponHash.Flashlight] = "weapon_flashlight",
-            [WeaponHash.Dagger] = "weapon_dagger",
-            [WeaponHash.Grenade] = "weapon_thrown_grenade",
-            [WeaponHash.PoolCue] = "weapon_pool_cue",
-            [WeaponHash.Bat] = "weapon_bat",
-            [WeaponHash.SpecialCarbineMk2] = "weapon_rifle_carbine",
-            [WeaponHash.DoubleActionRevolver] = "weapon_revolver",
-            [WeaponHash.Pistol50] = "weapon_pistol_50",
-            [WeaponHash.Knife] = "weapon_knife",
-            [WeaponHash.MG] = "weapon_assault_mg",
-            [WeaponHash.BullpupShotgun] = "weapon_shotgun_bullpup",
-            [WeaponHash.BZGas] = "weapon_thrown_bz_gas",
-            [WeaponHash.Unarmed] = "weapon_unarmed",
-            [WeaponHash.GrenadeLauncher] = "weapon_heavy_grenade_launcher",
-            [WeaponHash.NightVision] = "weapon_thermalcharge",
-            [WeaponHash.Musket] = "weapon_musket",
-            [WeaponHash.ProximityMine] = "weapon_thrown_sticky",
-            [WeaponHash.AdvancedRifle] = "weapon_rifle_advanced",
-            [WeaponHash.UpNAtomizer] = "weapon_stungun",
-            [WeaponHash.RPG] = "weapon_heavy_rpg",
-            [WeaponHash.Widowmaker] = "weapon_firework",
-            [WeaponHash.PipeBomb] = "weapon_pipebomb",
-            [WeaponHash.MiniSMG] = "weapon_mini_smg",
-            [WeaponHash.SNSPistol] = "weapon_snspistol",
-            [WeaponHash.PistolMk2] = "weapon_pistol",
-            [WeaponHash.AssaultRifle] = "weapon_rifle_assault",
-            [WeaponHash.SpecialCarbine] = "weapon_rifle_carbine",
-            [WeaponHash.Revolver] = "weapon_revolver",
-            [WeaponHash.MarksmanRifle] = "weapon_marksmanrifle",
-            [WeaponHash.RevolverMk2] = "weapon_revolver",
-            [WeaponHash.BattleAxe] = "weapon_battle_axe",
-            [WeaponHash.HeavyPistol] = "weapon_heavypistol",
-            [WeaponHash.KnuckleDuster] = "weapon_knuckle",
-            [WeaponHash.MachinePistol] = "weapon_machinepistol",
-            [WeaponHash.CombatMGMk2] = "weapon_lmg_combat",
-            [WeaponHash.MarksmanPistol] = "weapon_marksmanpistol",
-            [WeaponHash.Machete] = "weapon_machete",
-            [WeaponHash.SwitchBlade] = "weapon_switchblade",
-            [WeaponHash.AssaultShotgun] = "weapon_shotgun_assault",
-            [WeaponHash.DoubleBarrelShotgun] = "weapon_shotgun_sawnoff",
-            [WeaponHash.AssaultSMG] = "weapon_smg_assault",
-            [WeaponHash.Hatchet] = "weapon_hatchet",
-            [WeaponHash.Bottle] = "weapon_bottle",
-            [WeaponHash.CarbineRifleMk2] = "weapon_rifle_carbine",
-            [WeaponHash.Parachute] = "vehicle_weapon_player_buzzard",
-            [WeaponHash.SmokeGrenade] = "weapon_thrown_bz_gas",
-        };
-
         // ini file parameters
         private IniFile myINI;
         // dict of mod keys
@@ -162,7 +66,6 @@ namespace CarInventory
         public VehicleInventory()
         {
             // create ini file class object
-
             myINI = new IniFile(modName);
 
             // call initialization
@@ -177,17 +80,11 @@ namespace CarInventory
             NavigateUp = IniModKeysSettings.ElementAt(5).Value[1];
             NavigateDown = IniModKeysSettings.ElementAt(6).Value[1];
 
-            // end of initialization
+            // loading of icons
+            CustomWeapon.LoadWeaponIcons();
+
             KeyDown += OnKeyDown;
             Tick += OnTick;
-
-            // icons streaming
-            Function.Call(Hash.REQUEST_STREAMED_TEXTURE_DICT, "mpkillquota", false);
-
-            foreach (string texture in WeaponsIconsDict.Values)
-            {
-                Function.Call(Hash.HAS_STREAMED_TEXTURE_DICT_LOADED, texture);
-            }
         }
 
         void OnTick(object sender, EventArgs e)
@@ -254,15 +151,13 @@ namespace CarInventory
                 {
                     if (e.KeyCode == PutWeaponKey && Game.Player.Character.Weapons.Current.Hash != WeaponHash.Unarmed)
                     {
-                        customV.AddToVehicleInventory(Game.Player.Character.Weapons.Current, Game.Player.Character.Weapons.Current.Ammo);
-                        Game.PlaySound("Grab_Parachute", "BASEJUMPS_SOUNDS");
+                        customV.AddToVehicleInventory(Game.Player.Character.Weapons.Current, Game.Player.Character.Weapons.Current.Ammo);                        
                     }
 
 
                     if (e.KeyCode == TakeWeaponKey)
                     {
                         customV.RemoveFromVehicleInventory();
-                        Game.PlaySound("Grab_Parachute", "BASEJUMPS_SOUNDS");
                     }
 
 
@@ -316,7 +211,7 @@ namespace CarInventory
         {
             currentVehicle = null;
 
-            if (!Game.Player.Character.IsInVehicle())
+            if (!Game.Player.Character.IsInVehicle() && Game.Player.Character.IsAlive && !Game.Player.Character.IsSwimming)
             {
                 Vehicle[] all_near_vehicles = World.GetNearbyVehicles(Game.Player.Character.Position, 6f);
 
@@ -332,6 +227,7 @@ namespace CarInventory
 
                     if (World.GetDistance(EngineCoord, TrunkCoord) > World.GetDistance(EngineCoord, HoodCoord))
                         TrunkNeonCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "neon_b"));
+
                     else
                         TrunkNeonCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "neon_f"));
 
@@ -388,7 +284,7 @@ namespace CarInventory
             Function.Call(Hash.DRAW_RECT, 1, 1, 0.18, 0.26, Color.Black.R, Color.Black.G, Color.Black.B, 160);
 
             //headline rect
-            Function.Call(Hash.DRAW_RECT, 1, -0.12, 0.18, 0.02, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
+            Function.Call(Hash.DRAW_RECT, 1, -0.12, 0.18, 0.02, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 50);
             //headline text
 
             // get custom vehicle from list
@@ -408,20 +304,21 @@ namespace CarInventory
             DrawHackPanelText($"Selected: {weaponName}", 0, -0.133, 0.35, Color.White, true);
 
             //headline rect
-            Function.Call(Hash.DRAW_RECT, 1, 0.12, 0.18, 0.02, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
+            Function.Call(Hash.DRAW_RECT, 1, 0.12, 0.18, 0.02, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 50);
             //headline text
-            DrawHackPanelText($"{PutWeaponKey} - put item, {TakeWeaponKey} - take item, {NavigateLeft} / {NavigateRight} / {NavigateUp} / {NavigateDown} - navigate", 0, 0.109, 0.245, Color.White, true);
+            DrawHackPanelText($"{PutWeaponKey} - put item, {TakeWeaponKey} - take item, {NavigateLeft} / {NavigateRight} / {NavigateUp} / {NavigateDown} - navigate", 0, 0.109, 0.243, Color.White, true);
 
+            // draw bias
             double bias = 0.043;
             double x;
             double y;
 
             // draw inventory with 4x4 default size
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < custVehicle.CustomVehicleInventory.GetLength(0); i++)
             {
                 x = -0.065 + bias * i;
 
-                for (int j = 0; j < 4; j++)
+                for (int j = 0; j < custVehicle.CustomVehicleInventory.GetLength(1); j++)
                 {
                     y = -0.08 + bias * j;
 
@@ -437,7 +334,7 @@ namespace CarInventory
                         if (custVehicle.CustomVehicleInventory[i, j] != null)
                         {
                             //draw weapon icon
-                            Function.Call(Hash.DRAW_SPRITE, "mpkillquota", GetWeaponIconTextureName(custVehicle.CustomVehicleInventory[i, j].CustomWeaponModel.Hash), x, y + 0.01 * j, 0.035, 0.03, 0.0, Color.White.R, Color.White.G, Color.White.B, 255);
+                            Function.Call(Hash.DRAW_SPRITE, "mpkillquota", custVehicle.CustomVehicleInventory[i, j].GetWeaponIconTextureName(), x, y + 0.01 * j, 0.035, 0.03, 0.0, Color.White.R, Color.White.G, Color.White.B, 255);
 
                             // draw weapon's ammo
                             if (custVehicle.CustomVehicleInventory[i, j].CustomWeaponModel.Group != WeaponGroup.Melee)
@@ -445,24 +342,16 @@ namespace CarInventory
                         }
                     }
 
-                    catch 
+                    catch
                     {
                         // draw cell
-                        Function.Call(Hash.DRAW_RECT, x, y + 0.01 * j, 0.035, 0.045, Color.DarkRed.R, Color.DarkRed.G, Color.DarkRed.B, 120);
+                        //Function.Call(Hash.DRAW_RECT, x, y + 0.01 * j, 0.035, 0.045, Color.DarkRed.R, Color.DarkRed.G, Color.DarkRed.B, 120);
                     }
                 }
             }
 
             // end of draw of inventory
             Function.Call(Hash.CLEAR_DRAW_ORIGIN);
-        }
-        private string GetWeaponIconTextureName(WeaponHash hash)
-        {
-            if (WeaponsIconsDict.ContainsKey(hash))
-                return WeaponsIconsDict[hash];
-
-            else
-                return "vehicle_weapon_player_buzzard";
         }
         private CustomVehicle ContainsAVehicleCurrentCustomVehiclesList(Vehicle car)
         {
@@ -509,6 +398,7 @@ namespace CarInventory
             Function.Call(Hash._DRAW_TEXT, x, y);
         }
 
+        // -------------------------------------------------------------------------------------------------------
         // --------------------------------------- LOG Section --------------------------------------------------
         private void WriteToLogFile(string text)
         {
@@ -527,12 +417,7 @@ namespace CarInventory
         }
 
 
-
-
-
-
-
-
+        //-----------------------------------------------------------------
         //------------------------------ INI Section ----------------------
         private void IniInitialization()
         {
