@@ -145,5 +145,18 @@ namespace CarInventory
 
             return weapon_components;
         }
+
+        // inventory size by vehicle class
+        public static Dictionary<VehicleClass, int[]> invSizeByRequiredVehicleClass = new Dictionary<VehicleClass, int[]>()
+        {
+            [VehicleClass.Sports] = new int[] { 3, 3 },
+            [VehicleClass.SportsClassics] = new int[] { 3, 3 },
+            [VehicleClass.Sedans] = new int[] { 4, 3 },
+            [VehicleClass.Super] = new int[] { 3, 2 },
+            [VehicleClass.Coupes] = new int[] { 4, 3 },
+            [VehicleClass.Compacts] = new int[] { 2, 2 },
+            [VehicleClass.Muscle] = new int[] { 4, 3 },
+            [VehicleClass.SUVs] = new int[] { 4, 4 },
+        };
     }
 }

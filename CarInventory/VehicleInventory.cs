@@ -25,27 +25,20 @@ namespace CarInventory
         Keys NavigateRight;
         Keys NavigateUp;
         Keys NavigateDown;
-        // ini parameters
 
+        // ini parameters
+        // 
+
+        // in-game current custom vehicles' list
         private List<CustomVehicle> CustomVehiclesList = new List<CustomVehicle>() { };
 
+        // current real trunk coord
         private Vector3 TrunkNeonCoord;
+
+        // current in-game vehicle
         private Vehicle currentVehicle = null;
 
-        // inventory size by vehicle class
-        private Dictionary<VehicleClass, int[]> invSizeByRequiredVehicleClass = new Dictionary<VehicleClass, int[]>()
-        {
-            [VehicleClass.Sports] = new int[] { 3, 3 },
-            [VehicleClass.SportsClassics] = new int[] { 3, 3 },
-            [VehicleClass.Sedans] = new int[] { 4, 3 },
-            [VehicleClass.Super] = new int[] { 3, 2 },
-            [VehicleClass.Coupes] = new int[] { 4, 3 },
-            [VehicleClass.Compacts] = new int[] { 2, 2 },
-            [VehicleClass.Muscle] = new int[] { 4, 3 },
-            [VehicleClass.SUVs] = new int[] { 4, 4 },
-        };
-
-        // ini file parameters
+        // ----------------------------------- ini file parameters
         private IniFile myINI;
         // dict of mod keys
         private Dictionary<string, List<Keys>> IniModKeysSettings = new Dictionary<string, List<Keys>>()
@@ -61,6 +54,9 @@ namespace CarInventory
         //dict of mod settings
         private Dictionary<string, string> IniModOtherSettings = new Dictionary<string, string>() { };
 
+
+
+        //----------------------------------------------------------------------------------------------------------------------------------------------
         //----------------------------------------------------------------------------------------------------------------------------------------------
 
         public VehicleInventory()
@@ -119,7 +115,7 @@ namespace CarInventory
                 // trunk or hood variable
                 VehicleDoor currentTrunkDoor;
 
-                if (World.GetDistance(EngineCoord, HoodCoord) < World.GetDistance(EngineCoord, TrunkCoord))
+                if (Math.Abs(World.GetDistance(EngineCoord, HoodCoord)) < Math.Abs(World.GetDistance(EngineCoord, TrunkCoord)) || Math.Abs(World.GetDistance(EngineCoord, HoodCoord)) > 20)
                 {
                     currentTrunkDoor = VehicleDoor.Trunk;
                 }
@@ -166,7 +162,7 @@ namespace CarInventory
                         customV.cursorPos[0]--;
 
                         if (customV.cursorPos[0] < 0)
-                            customV.cursorPos[0] = invSizeByRequiredVehicleClass[currentVehicle.ClassType][0] - 1;
+                            customV.cursorPos[0] = CustomVehicle.invSizeByRequiredVehicleClass[currentVehicle.ClassType][0] - 1;
 
                         Game.PlaySound("NAV_UP_DOWN", "HUD_MINI_GAME_SOUNDSET");
                     }
@@ -176,7 +172,7 @@ namespace CarInventory
                     {
                         customV.cursorPos[0]++;
 
-                        if (customV.cursorPos[0] > invSizeByRequiredVehicleClass[currentVehicle.ClassType][0] - 1)
+                        if (customV.cursorPos[0] > CustomVehicle.invSizeByRequiredVehicleClass[currentVehicle.ClassType][0] - 1)
                             customV.cursorPos[0] = 0;
 
                         Game.PlaySound("NAV_UP_DOWN", "HUD_MINI_GAME_SOUNDSET");
@@ -188,7 +184,7 @@ namespace CarInventory
                         customV.cursorPos[1]--;
 
                         if (customV.cursorPos[1] < 0)
-                            customV.cursorPos[1] = invSizeByRequiredVehicleClass[currentVehicle.ClassType][1] - 1;
+                            customV.cursorPos[1] = CustomVehicle.invSizeByRequiredVehicleClass[currentVehicle.ClassType][1] - 1;
 
                         Game.PlaySound("NAV_UP_DOWN", "HUD_MINI_GAME_SOUNDSET");
                     }
@@ -198,7 +194,7 @@ namespace CarInventory
                     {
                         customV.cursorPos[1]++;
 
-                        if (customV.cursorPos[1] > invSizeByRequiredVehicleClass[currentVehicle.ClassType][1] - 1)
+                        if (customV.cursorPos[1] > CustomVehicle.invSizeByRequiredVehicleClass[currentVehicle.ClassType][1] - 1)
                             customV.cursorPos[1] = 0;
 
                         Game.PlaySound("NAV_UP_DOWN", "HUD_MINI_GAME_SOUNDSET");
@@ -225,23 +221,31 @@ namespace CarInventory
                     Vector3 HoodCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "bonnet"));
                     Vector3 TrunkCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "boot"));
 
-                    if (World.GetDistance(EngineCoord, TrunkCoord) > World.GetDistance(EngineCoord, HoodCoord))
+                    VehicleDoor vehDoor;
+
+                    if (Math.Abs(World.GetDistance(EngineCoord, HoodCoord)) < Math.Abs(World.GetDistance(EngineCoord, TrunkCoord)) || Math.Abs(World.GetDistance(EngineCoord, HoodCoord)) > 20)
+                    {
                         TrunkNeonCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "neon_b"));
+                        vehDoor = VehicleDoor.Trunk;
+                    }
 
                     else
+                    {
                         TrunkNeonCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "neon_f"));
+                        vehDoor = VehicleDoor.Hood;
+                    }
 
                     if (car.IsOnScreen && World.GetDistance(Game.Player.Character.Position, TrunkNeonCoord) < 1.5f)
                     {
                         Vector2 vec = World3DToScreen2d(car.Position);
 
-                        if (vec.X > 0.4f && vec.X < 0.6f && vec.Y > 0.1f && vec.Y < 0.9f && invSizeByRequiredVehicleClass.ContainsKey(car.ClassType) && !car.IsDead)
+                        if (vec.X > 0.4f && vec.X < 0.6f && vec.Y > 0.1f && vec.Y < 0.9f && CustomVehicle.invSizeByRequiredVehicleClass.ContainsKey(car.ClassType) && !car.IsDead)
                         {
                             currentVehicle = car;
 
-                            if (!CustomVehiclesList.Contains(ContainsAVehicleCurrentCustomVehiclesList(currentVehicle)) && invSizeByRequiredVehicleClass.ContainsKey(currentVehicle.ClassType))
+                            if (!CustomVehiclesList.Contains(ContainsAVehicleCurrentCustomVehiclesList(currentVehicle)) && CustomVehicle.invSizeByRequiredVehicleClass.ContainsKey(currentVehicle.ClassType))
                             {
-                                CustomVehiclesList.Add(new CustomVehicle(currentVehicle, invSizeByRequiredVehicleClass[currentVehicle.ClassType]));
+                                CustomVehiclesList.Add(new CustomVehicle(currentVehicle, CustomVehicle.invSizeByRequiredVehicleClass[currentVehicle.ClassType]));
                             }
 
                             // draw info text about open/close trunk
@@ -250,23 +254,11 @@ namespace CarInventory
                                 TrunkNeonCoord.Z += 1;
                                 vec = World3DToScreen2d(TrunkNeonCoord);
 
-                                if (World.GetDistance(EngineCoord, HoodCoord) < World.GetDistance(EngineCoord, TrunkCoord))
-                                {
-                                    if (!currentVehicle.IsDoorOpen(VehicleDoor.Trunk))
-                                        DrawHackPanelText($"Press {OpenTrunkKey} to open/close the trunk", vec.X, vec.Y + 0.1, 0.36f, Color.White, true);
-
-                                    else
-                                        DrawInventoryPanel(TrunkNeonCoord);
-                                }
+                                if (!currentVehicle.IsDoorOpen(vehDoor))
+                                    DrawHackPanelText($"Press {OpenTrunkKey} to open/close the trunk", vec.X, vec.Y + 0.1, 0.36f, Color.White, true);
 
                                 else
-                                {
-                                    if (!currentVehicle.IsDoorOpen(VehicleDoor.Hood))
-                                        DrawHackPanelText($"Press {OpenTrunkKey} to open/close the trunk", vec.X, vec.Y + 0.1, 0.36f, Color.White, true);
-
-                                    else
-                                        DrawInventoryPanel(TrunkNeonCoord);
-                                }
+                                    DrawInventoryPanel(TrunkNeonCoord);
                             }
 
                             break;
@@ -314,22 +306,26 @@ namespace CarInventory
             double y;
 
             // draw inventory with 4x4 default size
-            for (int i = 0; i < custVehicle.CustomVehicleInventory.GetLength(0); i++)
+            for (int i = 0; i < 4; i++)
             {
                 x = -0.065 + bias * i;
 
-                for (int j = 0; j < custVehicle.CustomVehicleInventory.GetLength(1); j++)
+                for (int j = 0; j < 4; j++)
                 {
                     y = -0.08 + bias * j;
 
                     try
                     {                      
                         // draw cell
-                        Function.Call(Hash.DRAW_RECT, x, y + 0.01 * j, 0.035, 0.045, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
+                        //Function.Call(Hash.DRAW_RECT, x, y + 0.01 * j, 0.035, 0.045, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
+                        Function.Call(Hash.DRAW_SPRITE, "helicopterhud", "hud_outline_thin", x, y + 0.01 * j, 0.04, 0.05, 0.0, Color.White.R, Color.White.G, Color.White.B, 50);
 
                         //draw cursor
-                        if (custVehicle.cursorPos[0] == i && custVehicle.cursorPos[1] == j)
-                            Function.Call(Hash.DRAW_RECT, x, y + 0.01 * j, 0.035, 0.045, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 120);
+                        if (custVehicle.cursorPos[0] == i && custVehicle.cursorPos[1] == j) 
+                        { 
+                            Function.Call(Hash.DRAW_SPRITE, "helicopterhud", "hud_lock", x, y + 0.01 * j, 0.04, 0.05, 0.0, Color.White.R, Color.White.G, Color.White.B, 255);
+                            //Function.Call(Hash.DRAW_RECT, x, y + 0.01 * j, 0.035, 0.045, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 120);
+                        }
 
                         if (custVehicle.CustomVehicleInventory[i, j] != null)
                         {
@@ -345,7 +341,8 @@ namespace CarInventory
                     catch
                     {
                         // draw cell
-                        //Function.Call(Hash.DRAW_RECT, x, y + 0.01 * j, 0.035, 0.045, Color.DarkRed.R, Color.DarkRed.G, Color.DarkRed.B, 120);
+                        //Function.Call(Hash.DRAW_RECT, x, y + 0.01 * j, 0.035, 0.045, Color.DarkRed.R, Color.DarkRed.G, Color.DarkRed.B, 30);
+                        Function.Call(Hash.DRAW_SPRITE, "helicopterhud", "hud_block", x, y + 0.01 * j, 0.04, 0.05, 0.0, Color.White.R, Color.White.G, Color.White.B, 50);
                     }
                 }
             }

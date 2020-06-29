@@ -123,13 +123,19 @@ namespace CarInventory
         public static void LoadWeaponIcons() 
         {
             // icons directory loading
-            Function.Call(Hash.REQUEST_STREAMED_TEXTURE_DICT, "mpkillquota", false);
+            Function.Call(Hash.REQUEST_STREAMED_TEXTURE_DICT, "mpkillquota", false);            
 
             // icons loading
             foreach (string texture in WeaponsIconsDict.Values)
             {
                 Function.Call(Hash.HAS_STREAMED_TEXTURE_DICT_LOADED, texture);
             }
+
+            // load non-active inventory cell
+            Function.Call(Hash.REQUEST_STREAMED_TEXTURE_DICT, "helicopterhud", false);
+            Function.Call(Hash.HAS_STREAMED_TEXTURE_DICT_LOADED, "hud_lock");
+            Function.Call(Hash.HAS_STREAMED_TEXTURE_DICT_LOADED, "hud_outline_thin");
+            Function.Call(Hash.HAS_STREAMED_TEXTURE_DICT_LOADED, "hud_block");
         }
         public string GetWeaponIconTextureName()
         {
