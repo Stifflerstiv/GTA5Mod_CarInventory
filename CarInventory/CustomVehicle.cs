@@ -157,6 +157,8 @@ namespace CarInventory
             [VehicleClass.Compacts] = new int[] { 2, 2 },
             [VehicleClass.Muscle] = new int[] { 4, 3 },
             [VehicleClass.SUVs] = new int[] { 4, 4 },
+            [VehicleClass.Emergency] = new int[] { 4, 3 },
+            [VehicleClass.Vans] = new int[] { 4, 4 },
         };
     }
 }
