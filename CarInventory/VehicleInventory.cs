@@ -32,9 +32,6 @@ namespace CarInventory
         // in-game current custom vehicles' list
         private List<CustomVehicle> CustomVehiclesList = new List<CustomVehicle>() { };
 
-        // current real trunk coord
-        private Vector3 TrunkNeonCoord;
-
         // current in-game vehicle
         private Vehicle currentVehicle = null;
 
@@ -104,6 +101,13 @@ namespace CarInventory
 
         void OnKeyDown(object sender, KeyEventArgs e)
         {
+            if (e.KeyCode == Keys.K && debugMode) 
+            {
+                float HoodDis = World.GetDistance(Game.Player.Character.CurrentVehicle.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, Game.Player.Character.CurrentVehicle, "engine")), Game.Player.Character.CurrentVehicle.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, Game.Player.Character.CurrentVehicle, "bonnet")));
+                float TrunkDis = World.GetDistance(Game.Player.Character.CurrentVehicle.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, Game.Player.Character.CurrentVehicle, "engine")), Game.Player.Character.CurrentVehicle.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, Game.Player.Character.CurrentVehicle, "boot")));
+                UI.ShowSubtitle($"hood = {HoodDis}, trunk = {TrunkDis}");
+            }
+
             if (currentVehicle != null && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
             {
                 Vector3 EngineCoord = currentVehicle.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, currentVehicle, "engine"));
@@ -126,24 +130,27 @@ namespace CarInventory
                 }
 
 
-                if (e.KeyCode == OpenTrunkKey && !Game.Player.Character.IsInVehicle() && !Game.Player.Character.IsDead)
+                if (e.KeyCode == OpenTrunkKey && !Game.Player.Character.IsInVehicle() && !Game.Player.Character.IsDead && !currentVehicle.IsDoorBroken(currentTrunkDoor))
                 {
-                    if (currentVehicle.IsDoorOpen(currentTrunkDoor))
+                    if (World.GetDistance(currentVehicle.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, currentVehicle, "engine")), currentVehicle.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, currentVehicle, "boot"))) < 10)
                     {
-                        // playing close trunk anitation
-                        Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "enter", 8f, 400, false, -1f);
-                        currentVehicle.CloseDoor(currentTrunkDoor, false);
-                    }
+                        if (currentVehicle.IsDoorOpen(currentTrunkDoor))
+                        {
+                            // playing close trunk anitation
+                            Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "enter", 8f, 400, false, -1f);
+                            currentVehicle.CloseDoor(currentTrunkDoor, false);
+                        }
 
-                    else
-                    {
-                        // playing open trunk anitation
-                        Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "exit", 8f, 400, false, -1f);
-                        currentVehicle.OpenDoor(currentTrunkDoor, false, false);
+                        else
+                        {
+                            // playing open trunk anitation
+                            Game.Player.Character.Task.PlayAnimation("anim@mp_player_intincarjazz_handsbodhi@ds@", "exit", 8f, 400, false, -1f);
+                            currentVehicle.OpenDoor(currentTrunkDoor, false, false);
+                        }
                     }
                 }
 
-                if (currentVehicle.IsDoorOpen(currentTrunkDoor))
+                if (currentVehicle.IsDoorOpen(currentTrunkDoor) || currentVehicle.IsDoorBroken(currentTrunkDoor))
                 {
                     if (e.KeyCode == PutWeaponKey && Game.Player.Character.Weapons.Current.Hash != WeaponHash.Unarmed)
                     {
@@ -200,6 +207,8 @@ namespace CarInventory
                         Game.PlaySound("NAV_UP_DOWN", "HUD_MINI_GAME_SOUNDSET");
                     }
                 }
+
+
             }
         }
 
@@ -210,6 +219,8 @@ namespace CarInventory
             if (!Game.Player.Character.IsInVehicle() && Game.Player.Character.IsAlive && !Game.Player.Character.IsSwimming)
             {
                 Vehicle[] all_near_vehicles = World.GetNearbyVehicles(Game.Player.Character.Position, 6f);
+                        // current real trunk coord
+                Vector3 TrunkNeonCoord;
 
                 if (all_near_vehicles.Length == 0)
                     return;
@@ -221,21 +232,36 @@ namespace CarInventory
                     Vector3 HoodCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "bonnet"));
                     Vector3 TrunkCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "boot"));
 
-                    VehicleDoor vehDoor;
+                    string backPos = "neon_b";
+                    string frontPos = "neon_f";
+
+                    VehicleDoor vehDoor = VehicleDoor.Trunk;
 
                     if (Math.Abs(World.GetDistance(EngineCoord, HoodCoord)) < Math.Abs(World.GetDistance(EngineCoord, TrunkCoord)) || Math.Abs(World.GetDistance(EngineCoord, HoodCoord)) > 20)
                     {
-                        TrunkNeonCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "neon_b"));
+                        if (World.GetDistance(TrunkCoord, car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, backPos))) < World.GetDistance(TrunkCoord, car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, frontPos))))
+                            TrunkNeonCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, backPos));
+
+                        else
+                            TrunkNeonCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, frontPos));
+
+
                         vehDoor = VehicleDoor.Trunk;
                     }
 
                     else
                     {
-                        TrunkNeonCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, "neon_f"));
+                        if (World.GetDistance(HoodCoord, car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, backPos))) < World.GetDistance(HoodCoord, car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, frontPos))))
+                            TrunkNeonCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, backPos));
+
+                        else
+                            TrunkNeonCoord = car.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, car, frontPos));
+
                         vehDoor = VehicleDoor.Hood;
                     }
 
-                    if (car.IsOnScreen && World.GetDistance(Game.Player.Character.Position, TrunkNeonCoord) < 1.5f)
+
+                    if (car.IsOnScreen && World.GetDistance(Game.Player.Character.Position, TrunkNeonCoord) < 1.5f && World.GetDistance(EngineCoord, TrunkCoord) < 20)
                     {
                         Vector2 vec = World3DToScreen2d(car.Position);
 
@@ -251,10 +277,10 @@ namespace CarInventory
                             // draw info text about open/close trunk
                             if (World.GetDistance(Game.Player.Character.Position, TrunkNeonCoord) < 2f && currentVehicle.LockStatus == VehicleLockStatus.Unlocked)
                             {
-                                TrunkNeonCoord.Z += 1;
+                                TrunkNeonCoord.Z += 2;
                                 vec = World3DToScreen2d(TrunkNeonCoord);
 
-                                if (!currentVehicle.IsDoorOpen(vehDoor))
+                                if (!currentVehicle.IsDoorOpen(vehDoor) && !currentVehicle.IsDoorBroken(vehDoor))
                                     DrawHackPanelText($"Press {OpenTrunkKey} to open/close the trunk", vec.X, vec.Y + 0.1, 0.36f, Color.White, true);
 
                                 else
@@ -342,7 +368,7 @@ namespace CarInventory
                     {
                         // draw cell
                         //Function.Call(Hash.DRAW_RECT, x, y + 0.01 * j, 0.035, 0.045, Color.DarkRed.R, Color.DarkRed.G, Color.DarkRed.B, 30);
-                        Function.Call(Hash.DRAW_SPRITE, "helicopterhud", "hud_block", x, y + 0.01 * j, 0.04, 0.05, 0.0, Color.White.R, Color.White.G, Color.White.B, 50);
+                        Function.Call(Hash.DRAW_SPRITE, "helicopterhud", "hud_block", x, y + 0.01 * j, 0.04, 0.05, 0.0, Color.White.R, Color.White.G, Color.White.B, 30);
                     }
                 }
             }

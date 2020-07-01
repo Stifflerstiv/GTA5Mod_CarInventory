@@ -12,6 +12,15 @@ Stay near vehicle' trunk and press "E" for open (vehicle's doors must be unlocke
 
 Vehicle class types support: Sports, SportsClassics, Sedans, Super, Coupes, Compacts, Muscle, SUVs
 -------------------<b>CHANGELOG</b>----------------------
+<b>Update v1.04:</b>
+- Changed inventory UI
+- Added inventory sounds
+- Each class of cars now has its own inventory size
+- Fixed stupid problem for cars with backside engine position (R* bug)
+- Added "Up" and "Down" keys for inventory selection (you can change it in .ini)
+- Fixed some bugs
+- Some script changes
+
 <b>Update v1.03:</b>
 - Added left/right navigate keys configuration
 - Fixed some bugs
