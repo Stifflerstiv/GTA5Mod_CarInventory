@@ -13,7 +13,7 @@ namespace CarInventory
     public class VehicleInventory : Script
     {
         private readonly string modName = "CarInventory";
-        private readonly string modVersion = "1.04";
+        private readonly string modVersion = "1.04b";
         private readonly string modAuthor = "Stifflerstiv";
         private readonly bool debugMode = false;
 
@@ -27,6 +27,7 @@ namespace CarInventory
         Keys NavigateDown;
 
         // ini parameters
+        string ShowTrunkOpenHelpText = "1";
         // 
 
         // in-game current custom vehicles' list
@@ -49,7 +50,10 @@ namespace CarInventory
             ["NavigateDown"] = new List<Keys>() { Keys.NumPad2, Keys.None },
         };
         //dict of mod settings
-        private Dictionary<string, string> IniModOtherSettings = new Dictionary<string, string>() { };
+        private Dictionary<string, string> IniModOtherSettings = new Dictionary<string, string>()
+        {
+            ["ShowTrunkOpenHelpText"] = "1",
+        };
 
 
         //----------------------------------------------------------------------------------------------------------------------------------------------
@@ -72,6 +76,9 @@ namespace CarInventory
             NavigateUp = IniModKeysSettings.ElementAt(5).Value[1];
             NavigateDown = IniModKeysSettings.ElementAt(6).Value[1];
 
+            // ini parameters variables
+            ShowTrunkOpenHelpText = IniModOtherSettings.ElementAt(0).Value;
+
             // loading of icons
             CustomWeapon.LoadWeaponIcons();
 
@@ -92,10 +99,7 @@ namespace CarInventory
         {
             try
             {
-                //UI.ShowSubtitle($"count={CustomVehiclesList.Count}");
-                Vehicle veh = World.GetNearbyVehicles(Game.Player.Character, 6)[0];
-
-                DrawAllVehicleDummys(veh);
+                UI.ShowSubtitle($"ShowTrunkOpenHelpText = {ShowTrunkOpenHelpText}");
             }
 
             catch { }
@@ -299,7 +303,10 @@ namespace CarInventory
                                 vec = World3DToScreen2d(TrunkNeonCoord);
 
                                 if (!currentVehicle.IsDoorOpen(vehDoor) && !currentVehicle.IsDoorBroken(vehDoor))
-                                    DrawHackPanelText($"Press {OpenTrunkKey} to open/close the trunk", vec.X, vec.Y + 0.1, 0.36f, Color.White, true);
+                                {
+                                    if (ShowTrunkOpenHelpText == "1")
+                                        DrawHackPanelText($"Press {OpenTrunkKey} to open/close the trunk", vec.X, vec.Y + 0.1, 0.36f, Color.White, true);
+                                }
 
                                 else
                                     DrawInventoryPanel(TrunkNeonCoord);
@@ -359,9 +366,14 @@ namespace CarInventory
                     y = -0.08 + bias * j;
 
                     try
-                    {                      
+                    {
                         // draw cell
                         //Function.Call(Hash.DRAW_RECT, x, y + 0.01 * j, 0.035, 0.045, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 30);
+                        if (custVehicle.CustomVehicleInventory[i, j] != null)
+                        {
+                            string testException = custVehicle.CustomVehicleInventory[i, j].Name;
+                        }
+
                         Function.Call(Hash.DRAW_SPRITE, "helicopterhud", "hud_outline_thin", x, y + 0.01 * j, 0.04, 0.05, 0.0, Color.White.R, Color.White.G, Color.White.B, 50);
 
                         //draw cursor
@@ -370,7 +382,7 @@ namespace CarInventory
                             Function.Call(Hash.DRAW_SPRITE, "helicopterhud", "hud_lock", x, y + 0.01 * j, 0.04, 0.05, 0.0, Color.White.R, Color.White.G, Color.White.B, 255);
                             //Function.Call(Hash.DRAW_RECT, x, y + 0.01 * j, 0.035, 0.045, Color.DarkGray.R, Color.DarkGray.G, Color.DarkGray.B, 120);
                         }
-
+                        
                         if (custVehicle.CustomVehicleInventory[i, j] != null)
                         {
                             //draw weapon icon
@@ -910,6 +922,33 @@ namespace CarInventory
             }
         }
 
+        private void DetachObjectTest()
+        {
+            try
+            {
+                Prop[] all_near_props = World.GetNearbyProps(Game.Player.Character.Position, 6);
+                //Vehicle vehicle = all_near_vehicles[0];
+
+
+                foreach(var prop in all_near_props) 
+                {
+                    //Vector3 dummyVehPos2 = vehicle.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, vehicle, "boot"));
+                    Function.Call(Hash.DRAW_LINE, prop.Position.X, prop.Position.Y, prop.Position.Z, Game.Player.Character.Position.X, Game.Player.Character.Position.Y, Game.Player.Character.Position.Z, Color.White.R, Color.White.G, Color.White.B, 180);
+                }
+                /*
+                Vector3 dummyVehPos = vehicle.GetBoneCoord(Function.Call<int>(Hash._0xFB71170B7E76ACBA, vehicle, "boot"));
+
+                Entity ent = World.GetNearbyProps(dummyVehPos, 1f)[0];
+
+                Function.Call(Hash.DETACH_ENTITY, ent, false, false);
+                Function.Call(Hash.DELETE_ENTITY, ent);
+                */
+            }
+
+            catch(Exception ex) { UI.ShowSubtitle(ex.Message); };
+
+        }
+
         // -------------------------------------------------------------------------------------------------------
         // --------------------------------------- LOG Section --------------------------------------------------
         private void WriteToLogFile(string text)
@@ -957,6 +996,12 @@ namespace CarInventory
                     myINI.Write("KEYS", IniModKeysSettings[param].ToString(), param.ToString());
                     IniModKeysSettings[param][1] = IniModKeysSettings[param][0];
                 }
+            }
+
+            // reading all setttings from file
+            foreach(var param in IniModOtherSettings.Keys.ToList())
+            {
+                IniModOtherSettings[param] = myINI.Read("SETTINGS", param.ToString());
             }
         }
 

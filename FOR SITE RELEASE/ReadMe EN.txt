@@ -10,8 +10,25 @@ P.S. If you have changed "CarInventory.ini" you may replays "CarInventory.dll" o
 <b>Using:</b>
 Stay near vehicle' trunk and press "E" for open (vehicle's doors must be unlocked)
 
-Vehicle class types support: Sports, SportsClassics, Sedans, Super, Coupes, Compacts, Muscle, SUVs
+<b>Configuration:</b>
+OpenTrunkKey - open/close trunk inventory button
+PutWeaponKey - put a gun to trunk button
+TakeWeaponKey - take a gun from trunk button
+NavigateLeft - cell left selection
+NavigateRight - cell right selection
+NavigateUp - cell up selection
+NavigateDown - cell down selection
+ShowTrunkOpenHelpText - show/hide open/close trunk help text
+
+Vehicle class types support: Sports, SportsClassics, Sedans, Super, Coupes, Compacts, Muscle, SUVs, Vans, Emergency
+
+P.S. not all cars have trunk/hood dummy and i've created fake way for fix it and it may work not good, excuse me for it.
 -------------------<b>CHANGELOG</b>----------------------
+<b>Update v1.04b:</b>
+- Added new configuration parameter let to hide "Open/close Trunk" help text from game
+- Some UI optimization
+- Some script changes
+
 <b>Update v1.04:</b>
 - Changed inventory UI
 - Added inventory sounds
