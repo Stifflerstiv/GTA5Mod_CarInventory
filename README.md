@@ -1,4 +1,5 @@
 ------------------ENG-------------------
+
 This mod adds GUI weapon inventory for car's trunk.
 
 <b>Installation:</b>
@@ -23,7 +24,9 @@ ShowTrunkOpenHelpText - show/hide open/close trunk help text
 Vehicle class types support: Sports, SportsClassics, Sedans, Super, Coupes, Compacts, Muscle, SUVs, Vans, Emergency
 
 P.S. not all cars have trunk/hood dummy and i've created fake way for fix it and it may work not good, excuse me for it.
+
 -------------------<b>CHANGELOG</b>----------------------
+
 <b>Update v1.04b:</b>
 - Added new configuration parameter let to hide "Open/close Trunk" help text from game
 - Some UI optimization
@@ -56,6 +59,7 @@ P.S. not all cars have trunk/hood dummy and i've created fake way for fix it and
 
 
 ------------------<b>РУС</b>-------------------
+
 Данный мод добавляет GUI инвентарь для багажника автомобиля
 
 <b>Установка:</b>
@@ -82,6 +86,7 @@ ShowTrunkOpenHelpText - показывать/скрывать текстовую
 P.S. к сожалению, не все авто в игре сделаны хорошо и у многих нет дамми багажника или капота. Пришлось делать костыль и, возможно, что-то будет работать не совсем адекватно, за что прошу прощения.
 
 -------------------<b>ИСТОРИЯ ИЗМЕНЕНИЙ</b>----------------------
+
 <b>Патч v1.04:</b>
 - Добавлен новый параметр конфигурации, позволяющий скрыть текстовую подсказку об открытии/закрытии инвентаря
 - Немного UI оптимизации 
